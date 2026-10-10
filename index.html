@@ -158,7 +158,7 @@ nav button[aria-selected="true"]{background:rgba(246,239,220,.1);color:var(--gol
     <div class="box">
       <div class="label">5 · Normas activas</div>
       <ol class="normas" id="normas"></ol>
-      <div class="addrow"><input id="normaIn" placeholder="Escribe una norma nueva"><button class="btn ghost" id="normaAdd">Añadir</button></div>
+      <p class="empty">Las normas solo se escriben en la mesa, cuando a alguien le sale un 5.</p>
     </div>
     <div class="box">
       <div class="label">Jugadores (en orden de turno)</div>
@@ -205,7 +205,7 @@ const RULES = {
  4:{t:"Gesto",tag:"Poder",s:"Ahora tienes el poder del gesto. Cuando te pongas el dedo en la barbilla, todos deben imitarte. El último bebe un trago, y quien no lo haga en 10 segundos también bebe.",
     m:["Te quedas con el poder del gesto.","Cuando quieras, ponte el dedo en la barbilla sin avisar: todos los demás tienen que imitarte. El último en hacerlo bebe un trago, y cualquiera que no lo haga en 10 segundos también bebe.","Cuando otro jugador saque un 4, te quita el poder y pasa a ser suyo."]},
  5:{t:"Norma",tag:"Dura toda la partida",s:"Inventa una norma. Dura toda la partida. También puedes usarla para cambiar o eliminar una norma anterior.",
-    m:["Inventa una norma que todos tendrán que cumplir durante el resto de la partida.","Tu norma también puede modificar una norma anterior, eliminarla o añadirle algo."]},
+    m:["Inventa una norma que todos tendrán que cumplir durante el resto de la partida.","Tu norma también puede modificar una norma anterior, eliminarla o añadirle algo.","Solo puede escribir la norma quien ha sacado el 5, y solo en ese momento: en cuanto se saca la siguiente carta, ya no se puede."]},
  6:{t:"Cascada",s:"Empieza a beber de tu vaso. Todos tienen que beber a la vez que tú hasta que pares.",
     m:["Empieza a beber de tu vaso y todos los demás tienen que beber contigo.","Nadie puede parar hasta que tú pares."]},
  7:{t:"Gnomo",tag:"Dura toda la partida",s:"Ponte un trozo de papel (o lo que tengas a mano) en la cabeza. Cada vez que bebas, déjalo en la mesa y vuelve a ponértelo. Si se te olvida y alguien grita «¡Gnomo!», bebes un trago.",
@@ -251,7 +251,10 @@ function renderRule(){
   if(n===9)extra=`<div class="note">${who} tiene ahora el poder${S.last.prev&&S.last.prev!==S.last.who?` (se lo quita a ${esc(S.last.prev)})`:""}.</div>`;
   if(n===7)extra=`<div class="note">${who} lleva ahora un gnomo (${S.gnomos.filter(g=>g===S.last.who).length} en total).</div>`;
   if(n===8)extra=`<div class="note">${who} tiene ${S.pases[S.last.who]||0} pase(s) para mear. Úsalo desde «Poderes y normas».</div>`;
-  if(n===5)extra=S.last.normaDone?`<div class="note">Norma apuntada. La tienes en «Poderes y normas».</div>`:`<div class="row"><input id="ruleNorma" placeholder="Escribe la norma de ${who}"><button class="btn" id="ruleNormaBtn">Apuntar</button></div>`;
+  if(n===5)extra=S.last.normaDone?`<div class="note">Norma apuntada. La tienes en «Poderes y normas».</div>`:
+    `<div class="note">Solo ${who} puede escribir, y solo ahora: en cuanto se saque la siguiente carta, se cierra.</div>`+
+    (S.normas.length?`<ol style="margin:0;padding-left:22px">${S.normas.map((t,i)=>`<li>${esc(t)} <button class="btn ghost" style="padding:2px 8px;font-size:13px" data-norma="${i}">eliminar</button></li>`).join("")}</ol>`:"")+
+    `<div class="row"><input id="ruleNorma" placeholder="Escribe la norma de ${who}"><button class="btn" id="ruleNormaBtn">Apuntar</button></div>`;
   box.innerHTML=`<div class="rule"><div class="head"><span class="num">${n}</span><div><div class="label" style="color:#7a7060">Carta de ${who}</div><h3>${r.t}</h3></div></div><p>${r.s}</p>${extra}</div>`;
   if(n===5&&!S.last.normaDone){
     const go=()=>{const v=$("ruleNorma").value.trim();if(!v)return;S.normas.push(v);S.last.normaDone=true;save();renderRule();renderPowers()};
@@ -272,7 +275,7 @@ function renderPowers(){
   $("gnomos").innerHTML=S.gnomos.length?S.gnomos.map((g,i)=>`<span class="chip">${esc(g)}<button aria-label="Quitar gnomo" data-gn="${i}">×</button></span>`).join(""):`<p class="empty">Nadie lleva gnomo. Sale con el 7.</p>`;
   const ps=Object.entries(S.pases).filter(([,v])=>v>0);
   $("pases").innerHTML=ps.length?ps.map(([p,v])=>`<span class="chip">${esc(p)} · ${v}<button class="use" data-pase="${esc(p)}">Usar</button></span>`).join(""):`<p class="empty">Nadie tiene pase. Sale con el 8.</p>`;
-  $("normas").innerHTML=S.normas.length?S.normas.map((t,i)=>`<li>${esc(t)}<button class="del" data-norma="${i}">quitar</button></li>`).join(""):`<p class="empty" style="margin-left:-22px">Todavía no hay normas. Sale con el 5.</p>`;
+  $("normas").innerHTML=S.normas.length?S.normas.map(t=>`<li>${esc(t)}</li>`).join(""):`<p class="empty" style="margin-left:-22px">Todavía no hay normas.</p>`;
   $("players").innerHTML=S.players.map((p,i)=>`<span class="chip">${esc(p)}<button aria-label="Quitar a ${esc(p)}" data-pl="${i}">×</button></span>`).join("")||`<p class="empty">Añade al menos un jugador.</p>`;
   renderReset();
 }
@@ -302,12 +305,10 @@ document.addEventListener("click",e=>{
   const t=e.target;
   if(t.dataset.gn!==undefined){S.gnomos.splice(+t.dataset.gn,1);save();renderPowers()}
   if(t.dataset.pase!==undefined){S.pases[t.dataset.pase]--;save();renderPowers()}
-  if(t.dataset.norma!==undefined){S.normas.splice(+t.dataset.norma,1);save();renderPowers()}
+  if(t.dataset.norma!==undefined&&S.last&&S.last.c.n===5&&!S.last.normaDone){S.normas.splice(+t.dataset.norma,1);S.last.normaDone=true;save();renderRule();renderPowers()}
   if(t.dataset.pl!==undefined){const i=+t.dataset.pl;S.players.splice(i,1);if(S.turn>=S.players.length)S.turn=0;save();renderPowers();renderTurn()}
 });
-function addNorma(){const v=$("normaIn").value.trim();if(!v)return;S.normas.push(v);$("normaIn").value="";save();renderPowers()}
 function addPlayer(){const v=$("playerIn").value.trim();if(!v)return;S.players.push(v);$("playerIn").value="";save();renderPowers();renderTurn()}
-$("normaAdd").onclick=addNorma;$("normaIn").onkeydown=e=>{if(e.key==="Enter")addNorma()};
 $("playerAdd").onclick=addPlayer;$("playerIn").onkeydown=e=>{if(e.key==="Enter")addPlayer()};
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
   document.querySelectorAll("nav button").forEach(x=>x.setAttribute("aria-selected",x===b));
