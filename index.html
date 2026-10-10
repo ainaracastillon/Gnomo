@@ -55,6 +55,9 @@ h2{font-family:var(--display);font-weight:400;font-size:20px;margin:0;color:var(
 .card .n.tl{top:16px;left:18px}.card .n.br{bottom:16px;right:18px;transform:rotate(180deg)}
 .card svg{width:46%;height:auto;fill:var(--suit)}
 .card .suitname{position:absolute;bottom:18px;left:0;right:0;text-align:center;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7a7060;font-weight:600}
+.card{cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+.card:active{transform:scale(.97)}
+.hint{margin:0;font-size:14px;color:var(--muted);letter-spacing:.04em}
 .card.flip{animation:flip .4s ease}
 @keyframes flip{from{transform:rotateY(90deg) scale(.95)}to{transform:none}}
 @media (prefers-reduced-motion:reduce){.card.flip{animation:none}}
@@ -131,8 +134,8 @@ nav button[aria-selected="true"]{background:rgba(246,239,220,.1);color:var(--gol
       <button class="skip" id="skip">Saltar turno</button>
     </div>
     <div class="stage">
-      <div class="card back" id="card"></div>
-      <button class="draw" id="draw">Sacar carta</button>
+      <div class="card back" id="card" role="button" tabindex="0"></div>
+      <p class="hint" id="draw">Toca la carta para sacar</p>
     </div>
     <div id="rulebox"></div>
   </section>
@@ -264,7 +267,7 @@ function renderRule(){
 function renderTurn(){
   $("turnname").textContent=S.deck.length?cur():"—";
   const empty=!S.deck.length, d=$("draw");
-  if(empty){d.textContent="Barajar de nuevo";}else d.textContent="Sacar carta";
+  d.textContent=empty?"Toca la carta para barajar de nuevo":"Toca la carta para sacar";
   $("skip").hidden=empty||S.players.length<2;
   if(empty&&!$("endnote")){const e=document.createElement("div");e.id="endnote";e.className="endbox";e.innerHTML=`<h2>Se acabó la baraja</h2><p style="margin:0;color:var(--muted)">Barajad y empezad la ronda ${S.round+1}. Las normas, gnomos y poderes siguen.</p>`;$("rulebox").after(e)}
   if(!empty&&$("endnote"))$("endnote").remove();
@@ -290,7 +293,9 @@ function renderManual(){
 }
 function all(anim){renderTally();renderCard(anim);renderRule();renderTurn();renderPowers()}
 
-$("draw").onclick=()=>{
+$("card").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();drawCard()}};
+$("card").onclick=()=>drawCard();
+function drawCard(){
   if(!S.deck.length){S.deck=shuffle(newDeck());S.round++;S.last=null;save();all();return}
   const c=S.deck.pop(),who=cur();const last={c,who};
   if(c.n===4){last.prev=S.gesto;S.gesto=who}
@@ -299,7 +304,7 @@ $("draw").onclick=()=>{
   if(c.n===8)S.pases[who]=(S.pases[who]||0)+1;
   S.last=last;if(S.players.length)S.turn=(S.turn+1)%S.players.length;
   save();all(true);
-};
+}
 $("skip").onclick=()=>{if(S.players.length){S.turn=(S.turn+1)%S.players.length;save();renderTurn()}};
 document.addEventListener("click",e=>{
   const t=e.target;
