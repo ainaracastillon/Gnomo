@@ -144,6 +144,14 @@ ol.normas li .del{background:none;border:none;color:var(--muted);font-size:13px;
 body.gate{overflow:hidden;position:fixed;inset:0;width:100%}
 body.gate .app{height:100%}
 body.gate .agegate{margin-block:auto}
+.endov{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(7,26,18,.78);animation:fadeIn .25s ease}
+.endcard{width:100%;max-width:380px;background:var(--felt-2);border:1px solid var(--line);border-radius:18px;padding:24px 20px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.5);animation:pop .35s cubic-bezier(.2,.8,.3,1.2)}
+.endcard h2{font-size:26px;color:var(--gold)}
+.endcard p{margin:0;color:var(--cream);max-width:32ch}
+.endlogo{width:84px;height:84px}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.endov,.endcard{animation:none}}
 .agegate{display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center;background:rgba(0,0,0,.2);border-radius:14px;padding:22px 18px}
 .agegate p{margin:0;max-width:40ch}
 .notice{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:30;max-width:528px;margin-inline:auto;background:var(--gold);color:var(--ink);border-radius:14px;padding:14px 46px 14px 16px;line-height:1.45;box-shadow:0 10px 30px rgba(0,0,0,.45);animation:noticeIn .35s ease}
@@ -210,6 +218,16 @@ body.hasnotice .app{padding-bottom:170px}
     </div>
   </header>
   <button class="back" id="backBtn" hidden>← Volver a la mesa</button>
+
+  <!-- FIN -->
+  <div class="endov" id="endov" role="dialog" aria-modal="true" aria-labelledby="endTitle" hidden>
+    <div class="endcard">
+      <img class="endlogo" id="endLogo" alt="">
+      <h2 id="endTitle">¡Partida terminada!</h2>
+      <p>Se han sacado las 40 cartas. Las normas, los gnomos y los poderes de esta partida se acaban aquí.</p>
+      <button class="draw" id="endGo">Volver a empezar</button>
+    </div>
+  </div>
 
   <!-- EDAD -->
   <section id="agegate" class="agegate" hidden>
@@ -431,6 +449,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")setMenu(false)});
 function goTab(t){tab=t;setMenu(false);showScreens();window.scrollTo(0,0)}
 document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){prevTab=tab;goTab(g.dataset.go)}});
 let prevTab="mesa";
+$("endGo").onclick=()=>{$("endov").hidden=true;endGame()};
 $("noticeX").onclick=()=>{noticeClosed=true;$("manualNotice").hidden=true;document.body.classList.remove("hasnotice")};
 $("ageYes").onclick=()=>{window.__adult=true;try{sessionStorage.setItem("gnomo-18","1")}catch(e){}showScreens();window.scrollTo(0,0)};
 document.querySelectorAll("#menu button[data-tab]").forEach(b=>b.onclick=()=>goTab(b.dataset.tab));
@@ -451,13 +470,14 @@ function all(anim){showScreens();if(!S.started){renderSetup();return}renderCard(
 $("card").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();drawCard()}};
 $("card").onclick=()=>drawCard();
 function drawCard(){
-  if(!S.deck.length){endGame();return}
+  if(!S.deck.length){$("endov").hidden=false;$("endGo").focus();return}
   const c=S.deck.pop(),who=cur();
   S.last={c,who};S.turn=(S.turn+1)%S.players.length;
   save();all(true);burst(EMO[c.n]);
 }
 function burst(e){const d=document.createElement("div");d.className="burst";const k=e.startsWith("<")?1:[...e].filter(ch=>ch.codePointAt(0)>0x2000).length;d.style.setProperty("--k",k>2?.55:k>1?.75:1);d.setAttribute("aria-hidden","true");d.innerHTML=`<span>${e}</span>`;document.body.appendChild(d);setTimeout(()=>d.remove(),1000)}
 try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{})}catch(e){}
+$("endLogo").src=EMO[7].match(/src="([^"]+)"/)[1];
 load();renderManual();all();
 </script>
 </body>
