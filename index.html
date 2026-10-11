@@ -138,6 +138,9 @@ ol.normas li .del{background:none;border:none;color:var(--muted);font-size:13px;
 /* tabs */
 
 .endbox{text-align:center;background:rgba(0,0,0,.25);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:35;border:none;border-radius:999px;padding:14px 20px;background:var(--gold);color:var(--ink);font-weight:700;font-size:15px;box-shadow:0 10px 26px rgba(0,0,0,.45),0 3px 0 #9c7512;animation:noticeIn .3s ease}
+.fab:active{transform:translateY(2px)}
+body.hasfab .app{padding-bottom:96px}
 .gamefoot{flex:none;font-size:12px;margin-top:-2px}
 .gamefoot .linkbtn{font-size:12px}
 .foot{margin:0;text-align:center;font-size:13px;color:var(--muted)}
@@ -245,6 +248,8 @@ body.hasnotice .app{padding-bottom:170px}
     </div>
   </header>
   <button class="back" id="backBtn" hidden>← Volver a la mesa</button>
+
+  <button class="fab" id="fabBack" hidden>🃏 Volver a la partida</button>
 
   <!-- FIN -->
   <div class="endov" id="endov" role="dialog" aria-modal="true" aria-labelledby="endTitle" hidden>
@@ -481,6 +486,7 @@ function renderSetup(){
 }
 function showScreens(){
   const st=S.started;
+  $("fabBack").hidden=true;document.body.classList.remove("hasfab");
   document.body.classList.toggle("game",st&&tab==="mesa");
   let adult=false;try{adult=sessionStorage.getItem("gnomo-18")==="1"}catch(e){adult=window.__adult}
   adult=adult||window.__adult;
@@ -491,6 +497,7 @@ function showScreens(){
   if(io&&tab!=="legal"){$("setup").hidden=true;$("tab-mesa").hidden=true;$("tab-manual").hidden=false;$("backBtn").hidden=false;$("backBtn").textContent="← Cambiar jugadores";return}
   $("setup").hidden=st||tab!=="mesa";
   ["mesa","manual","legal"].forEach(t=>$("tab-"+t).hidden=t!==tab||(t==="mesa"&&!st));
+  const fab=st&&!intro&&(tab==="manual"||tab==="legal");$("fabBack").hidden=!fab;document.body.classList.toggle("hasfab",fab);
   $("menuNew").hidden=!st;$("menuAdd").hidden=!st;$("menuHist").hidden=!st;
   $("backBtn").hidden=tab==="mesa";
   $("backBtn").textContent=st?"← Volver a la mesa":"← Volver";
@@ -541,6 +548,7 @@ $("ageYes").onclick=()=>{window.__adult=true;try{sessionStorage.setItem("gnomo-1
 document.querySelectorAll("#menu button[data-tab]").forEach(b=>b.onclick=()=>goTab(b.dataset.tab));
 function endGame(){setupNames=S.players.length?[...S.players]:["",""];S=fresh();tab="mesa";save();setMenu(false);all()}
 $("menuNew").onclick=()=>{if(!newArmed){newArmed=true;$("menuNew").textContent="¿Seguro? Toca otra vez";return}endGame()};
+$("fabBack").onclick=()=>goTab("mesa");
 $("backBtn").onclick=()=>{if(tab==="legal"&&!intro&&prevTab==="manual"){goTab("manual");return}if(tab==="legal"&&intro){tab="mesa";showScreens();window.scrollTo(0,0);return}if(intro){intro=null;showScreens();window.scrollTo(0,0);return}goTab("mesa")};
 $("setupList").addEventListener("input",e=>{if(e.target.dataset.sp!==undefined)setupNames[+e.target.dataset.sp]=e.target.value});
 $("setupList").addEventListener("click",e=>{if(e.target.dataset.sprm!==undefined){setupNames.splice(+e.target.dataset.sprm,1);renderSetup()}});
