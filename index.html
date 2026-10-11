@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0e3324">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml, %3Csvg viewBox=%220 0 64 64%22 xmlns=%22http://www.w3.org/2000/svg%22%3E %3Cpath d=%22M33 2 C38 10 46 22 51 36 H13 C18 22 26 10 33 2Z%22 fill=%22%23c0392b%22/%3E %3Ccircle cx=%2233%22 cy=%223%22 r=%222.5%22 fill=%22%23d9a521%22/%3E %3Crect x=%2210%22 y=%2233%22 width=%2244%22 height=%227%22 rx=%223.5%22 fill=%22%23a83224%22/%3E %3Crect x=%2217%22 y=%2239%22 width=%2230%22 height=%2210%22 fill=%22%23f2c9a0%22/%3E %3Ccircle cx=%2226%22 cy=%2243%22 r=%221.8%22 fill=%22%231d1a14%22/%3E%3Ccircle cx=%2240%22 cy=%2243%22 r=%221.8%22 fill=%22%231d1a14%22/%3E %3Cpath d=%22M14 44 C14 58 22 63 33 63 C44 63 52 58 52 44 C46 50 40 50 33 49 C26 50 20 50 14 44Z%22 fill=%22%23f6efdc%22/%3E %3Cellipse cx=%2233%22 cy=%2247%22 rx=%224.5%22 ry=%224%22 fill=%22%23e08d6d%22/%3E %3C/svg%3E">
 <title>Gnomo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Outfit:wght@400;500;600;700&display=swap">
@@ -21,10 +22,12 @@
 html,body{height:100%}
 body{background:radial-gradient(120% 80% at 50% 0%,var(--felt-3),var(--felt) 55%,var(--felt-2));background-color:var(--felt);color:var(--cream);font-family:var(--body);font-size:15px;line-height:1.5}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 button,input{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .app{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:14px 96px;display:flex;flex-direction:column;gap:16px}
+.logo{width:44px;height:44px;flex:none}
 header{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 h1{font-family:var(--display);font-weight:400;font-size:34px;line-height:1;margin:0;letter-spacing:.5px;color:var(--gold)}
 .meta{font-size:13px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
@@ -122,12 +125,36 @@ nav button[aria-selected="true"]{background:rgba(246,239,220,.1);color:var(--gol
 
 <div class="app">
   <header>
-    <h1>Gnomo</h1>
-    <div class="meta">Ronda <b id="round">1</b> · Quedan <b id="left">40</b> de 40</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+        <path d="M33 2 C38 10 46 22 51 36 H13 C18 22 26 10 33 2Z" fill="#c0392b"/>
+        <circle cx="33" cy="3" r="2.5" fill="#d9a521"/>
+        <rect x="10" y="33" width="44" height="7" rx="3.5" fill="#a83224"/>
+        <rect x="17" y="39" width="30" height="10" fill="#f2c9a0"/>
+        <circle cx="26" cy="43" r="1.8" fill="#1d1a14"/><circle cx="40" cy="43" r="1.8" fill="#1d1a14"/>
+        <path d="M14 44 C14 58 22 63 33 63 C44 63 52 58 52 44 C46 50 40 50 33 49 C26 50 20 50 14 44Z" fill="#f6efdc"/>
+        <ellipse cx="33" cy="47" rx="4.5" ry="4" fill="#e08d6d"/>
+      </svg>
+      <h1>Gnomo</h1>
+    </div>
+    <div class="meta" id="hdrmeta">Ronda <b id="round">1</b> · Quedan <b id="left">40</b> de 40</div>
   </header>
+
+  <!-- NUEVA PARTIDA -->
+  <section id="setup" class="panel" hidden>
+    <div class="box">
+      <h2>Nueva partida</h2>
+      <p class="empty">Escribid los nombres en el orden en que estáis sentados. Hacen falta al menos 2 jugadores.</p>
+      <div id="setupList" style="display:flex;flex-direction:column;gap:8px"></div>
+      <button class="btn ghost" id="setupAdd">+ Añadir jugador</button>
+      <p class="empty" id="setupErr" style="color:#f0a090" hidden></p>
+    </div>
+    <button class="draw" id="setupGo" style="align-self:center">Empezar partida</button>
+  </section>
 
   <!-- MESA -->
   <section id="tab-mesa" class="panel">
+    <div class="label">Cartas que quedan de cada número</div>
     <div class="tally" id="tally" aria-label="Cartas que quedan de cada número"></div>
     <div class="turn" id="turnbox">
       <div><div class="label">Le toca a</div><strong id="turnname">—</strong></div>
@@ -223,10 +250,10 @@ const RULES = {
 
 const KEY="gnmo-v1";
 let S;
-function fresh(){return{players:["Jugador 1","Jugador 2","Jugador 3","Jugador 4"],turn:0,round:1,deck:shuffle(newDeck()),last:null,gesto:null,puta:null,gnomos:[],pases:{},normas:[]}}
+function fresh(){return{started:false,players:[],turn:0,round:1,deck:shuffle(newDeck()),last:null,gesto:null,puta:null,gnomos:[],pases:{},normas:[]}}
 function newDeck(){const d=[];for(const s of Object.keys(SUITS))for(let n=1;n<=10;n++)d.push({n,s});return d}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);return}}catch(e){}S=fresh()}
+function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);if(S.started===undefined)S.started=true;if(S.players.length)setupNames=[...S.players];return}}catch(e){}S=fresh()}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const $=id=>document.getElementById(id);
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -285,13 +312,31 @@ function renderPowers(){
 let confirming=false;
 function renderReset(){
   $("resetwrap").innerHTML=confirming?`<div class="confirm">¿Borrar todo y empezar una partida nueva? <button class="btn" id="rYes">Sí, empezar</button><button class="btn ghost" id="rNo">Cancelar</button></div>`:`<button class="reset" id="rAsk">Empezar partida nueva</button>`;
-  if(confirming){$("rYes").onclick=()=>{const pl=S.players;S=fresh();S.players=pl.length?pl:S.players;confirming=false;save();all()};$("rNo").onclick=()=>{confirming=false;renderReset()}}
+  if(confirming){$("rYes").onclick=()=>{setupNames=S.players.length?[...S.players]:["",""];S=fresh();confirming=false;save();all()};$("rNo").onclick=()=>{confirming=false;renderReset()}}
   else $("rAsk").onclick=()=>{confirming=true;renderReset()};
 }
 function renderManual(){
   $("manualList").innerHTML=Object.entries(RULES).map(([n,r])=>`<article class="mrule"><span class="num">${n}</span><div>${r.tag?`<span class="tag">${r.tag}</span>`:""}<h3>${r.t}</h3>${r.m.map(p=>`<p>${p}</p>`).join("")}</div></article>`).join("");
 }
-function all(anim){renderTally();renderCard(anim);renderRule();renderTurn();renderPowers()}
+let setupNames=["",""],tab="mesa";
+function renderSetup(){
+  $("setupList").innerHTML=setupNames.map((n,i)=>`<div class="addrow"><input id="sp${i}" data-sp="${i}" value="${esc(n)}" placeholder="Jugador ${i+1}" autocomplete="off">${setupNames.length>2?`<button class="btn ghost" data-sprm="${i}" aria-label="Quitar jugador ${i+1}">×</button>`:""}</div>`).join("");
+}
+function showScreens(){
+  const st=S.started;
+  $("setup").hidden=st;document.querySelector("nav").hidden=!st;$("hdrmeta").hidden=!st;
+  ["mesa","poderes","manual"].forEach(t=>$("tab-"+t).hidden=!st||t!==tab);
+  document.querySelectorAll("nav button").forEach(x=>x.setAttribute("aria-selected",x.dataset.tab===tab));
+}
+$("setupList").addEventListener("input",e=>{if(e.target.dataset.sp!==undefined)setupNames[+e.target.dataset.sp]=e.target.value});
+$("setupList").addEventListener("click",e=>{if(e.target.dataset.sprm!==undefined){setupNames.splice(+e.target.dataset.sprm,1);renderSetup()}});
+$("setupAdd").onclick=()=>{setupNames.push("");renderSetup();$("sp"+(setupNames.length-1)).focus()};
+$("setupGo").onclick=()=>{
+  const names=setupNames.map(n=>n.trim()).filter(Boolean);
+  if(names.length<2){$("setupErr").textContent="Escribe al menos 2 nombres para empezar.";$("setupErr").hidden=false;return}
+  $("setupErr").hidden=true;S=fresh();S.players=names;S.started=true;tab="mesa";save();all();
+};
+function all(anim){showScreens();if(!S.started){renderSetup();return}renderTally();renderCard(anim);renderRule();renderTurn();renderPowers()}
 
 $("card").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();drawCard()}};
 $("card").onclick=()=>drawCard();
@@ -316,8 +361,7 @@ document.addEventListener("click",e=>{
 function addPlayer(){const v=$("playerIn").value.trim();if(!v)return;S.players.push(v);$("playerIn").value="";save();renderPowers();renderTurn()}
 $("playerAdd").onclick=addPlayer;$("playerIn").onkeydown=e=>{if(e.key==="Enter")addPlayer()};
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll("nav button").forEach(x=>x.setAttribute("aria-selected",x===b));
-  ["mesa","poderes","manual"].forEach(t=>$("tab-"+t).hidden=t!==b.dataset.tab);
+  tab=b.dataset.tab;showScreens();
   window.scrollTo(0,0);
 });
 try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{})}catch(e){}
