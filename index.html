@@ -140,6 +140,9 @@ ol.normas li .del{background:none;border:none;color:var(--muted);font-size:13px;
 .foot{margin:0;text-align:center;font-size:13px;color:var(--muted)}
 .linkbtn{background:none;border:none;padding:0;color:var(--gold);text-decoration:underline;font-size:13px}
 .legal .intro p{font-size:14.5px}
+body.gate{overflow:hidden;position:fixed;inset:0;width:100%}
+body.gate .app{height:100%}
+body.gate .agegate{margin-block:auto}
 .agegate{display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center;background:rgba(0,0,0,.2);border-radius:14px;padding:22px 18px}
 .agegate p{margin:0;max-width:40ch}
 .notice{background:var(--gold);color:var(--ink);border-radius:14px;padding:14px 16px;line-height:1.45}
@@ -396,8 +399,8 @@ function showScreens(){
   document.body.classList.toggle("game",st&&tab==="mesa");
   let adult=false;try{adult=sessionStorage.getItem("gnomo-18")==="1"}catch(e){adult=window.__adult}
   adult=adult||window.__adult;
-  if(!adult&&tab!=="legal"){$("agegate").hidden=false;$("setup").hidden=true;$("tab-mesa").hidden=true;$("tab-manual").hidden=true;$("tab-legal").hidden=true;$("backBtn").hidden=true;$("menuBtn").parentElement.hidden=true;document.body.classList.remove("game");return}
-  $("agegate").hidden=true;$("menuBtn").parentElement.hidden=false;
+  if(!adult&&tab!=="legal"){$("agegate").hidden=false;$("setup").hidden=true;$("tab-mesa").hidden=true;$("tab-manual").hidden=true;$("tab-legal").hidden=true;$("backBtn").hidden=true;$("menuBtn").parentElement.hidden=true;document.body.classList.remove("game");document.body.classList.add("gate");return}
+  document.body.classList.remove("gate");$("agegate").hidden=true;$("menuBtn").parentElement.hidden=false;
   const io=!!intro;
   $("manualNotice").hidden=!io;$("manualGo").hidden=!io;if(io)$("menuBtn").parentElement.hidden=true;
   if(io&&tab!=="legal"){$("setup").hidden=true;$("tab-mesa").hidden=true;$("tab-manual").hidden=false;$("backBtn").hidden=false;$("backBtn").textContent="← Cambiar jugadores";return}
