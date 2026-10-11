@@ -146,7 +146,17 @@ body.gate .app{height:100%}
 body.gate .agegate{margin-block:auto}
 .agegate{display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center;background:rgba(0,0,0,.2);border-radius:14px;padding:22px 18px}
 .agegate p{margin:0;max-width:40ch}
-.notice{background:var(--gold);color:var(--ink);border-radius:14px;padding:14px 16px;line-height:1.45}
+.notice{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:30;max-width:528px;margin-inline:auto;background:var(--gold);color:var(--ink);border-radius:14px;padding:14px 46px 14px 16px;line-height:1.45;box-shadow:0 10px 30px rgba(0,0,0,.45);animation:noticeIn .35s ease}
+.notice p{margin:0}
+body.hasnotice .app{padding-bottom:170px}
+.notice-x{position:absolute;top:6px;right:6px;width:34px;height:34px;border:none;border-radius:50%;background:rgba(29,26,20,.12);color:var(--ink);font-size:22px;line-height:1}
+@keyframes noticeIn{from{transform:translateY(20px);opacity:0}to{transform:none;opacity:1}}
+.emo{font-size:.9em;margin-left:.35em;letter-spacing:-.05em}
+.mrule .emo{display:block;margin:6px 0 0;font-size:22px}
+.burst{position:fixed;inset:0;z-index:40;display:flex;align-items:center;justify-content:center;pointer-events:none;font-size:min(calc(var(--k,1) * 22vw),calc(var(--k,1) * 120px));line-height:1;white-space:nowrap;text-shadow:0 10px 30px rgba(0,0,0,.35)}
+.burst span{animation:burst .9s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes burst{0%{transform:scale(.2);opacity:0}25%{opacity:1}55%{transform:scale(1.25);opacity:1}100%{transform:scale(1.6);opacity:0}}
+@media (prefers-reduced-motion:reduce){.burst span{animation:fadeq .7s forwards}@keyframes fadeq{0%,40%{opacity:1}100%{opacity:0}}}
 .mini{display:inline-flex;flex-direction:column;gap:2px;vertical-align:middle;border:1px solid var(--ink);border-radius:5px;padding:3px 4px;margin-inline:2px}
 .mini i{display:block;width:10px;height:1.5px;background:var(--ink)}
 .reset{background:none;border:none;color:var(--muted);text-decoration:underline;font-size:13px;align-self:center}
@@ -263,7 +273,7 @@ body.gate .agegate{margin-block:auto}
 
   <!-- MANUAL -->
   <section id="tab-manual" class="manual" hidden>
-    <div class="notice" id="manualNotice" hidden><b>Lee las reglas antes de empezar.</b> Durante la partida puedes volver a verlas cuando quieras desde el menú <span class="mini" aria-hidden="true"><i></i><i></i><i></i></span> de la esquina superior derecha.</div>
+    <div class="notice" id="manualNotice" role="status" hidden><p><b>Lee las reglas antes de empezar.</b> Durante la partida puedes volver a verlas cuando quieras desde el menú <span class="mini" aria-hidden="true"><i></i><i></i><i></i></span> de la esquina superior derecha.</p><button class="notice-x" id="noticeX" aria-label="Cerrar aviso">×</button></div>
     <div class="intro">
       <h2>Cómo se juega</h2>
       <p>Por turnos, cada jugador saca una carta y cumple lo que dice su número. La partida dura hasta que se acaba la baraja; entonces termina y se puede empezar otra.</p>
@@ -283,6 +293,7 @@ const SUITS = {
   bastos:{name:"Bastos",color:"var(--wood)",svg:'<svg viewBox="0 0 24 24"><path d="M9.5 2.5c2-1 5-1 5.5.5l-1 19h-4z"/><circle cx="9.3" cy="8" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9.6" cy="15.5" r="1.4"/></svg>'}
 };
 
+const EMO={1: "🥃", 2: "🥃🥃", 3: "🥃🥃🥃", 4: "🤔", 5: "📜", 6: "🌊", 7: "🍄", 8: "🚽", 9: "🤐", 10: "🍺"};
 const RULES = {
  1:{t:"Un trago",s:"Reparte un trago a quien tú quieras.",
     m:["Reparte un trago a cualquier jugador de la mesa."]},
@@ -382,16 +393,16 @@ function renderRule(){
   const box=$("rulebox");
   if(!S.last){box.innerHTML="";return}
   const n=S.last.c.n,r=RULES[n];
-  box.innerHTML=`<div class="rule"><div class="head"><span class="num">${n}</span><h3>${r.t}</h3></div><p>${r.s}</p></div>`;
+  box.innerHTML=`<div class="rule"><div class="head"><span class="num">${n}</span><h3>${r.t}<span class="emo">${EMO[n]}</span></h3></div><p>${r.s}</p></div>`;
 }
 function renderTurn(){
   $("turnname").textContent=S.last?S.last.who:cur();
   $("draw").textContent=S.deck.length?"Toca la carta para sacar":"Se acabó la baraja · toca la carta para terminar";
 }
 function renderManual(){
-  $("manualList").innerHTML=Object.entries(RULES).map(([n,r])=>`<article class="mrule"><span class="num">${n}</span><div>${r.tag?`<span class="tag">${r.tag}</span>`:""}<h3>${r.t}</h3>${r.m.map(p=>`<p>${p}</p>`).join("")}</div></article>`).join("");
+  $("manualList").innerHTML=Object.entries(RULES).map(([n,r])=>`<article class="mrule"><span class="num">${n}</span><div>${r.tag?`<span class="tag">${r.tag}</span>`:""}<h3>${r.t}</h3><span class="emo">${EMO[n]}</span>${r.m.map(p=>`<p>${p}</p>`).join("")}</div></article>`).join("");
 }
-let setupNames=["",""],tab="mesa",newArmed=false,intro=null;
+let noticeClosed=false,setupNames=["",""],tab="mesa",newArmed=false,intro=null;
 function renderSetup(){
   $("setupList").innerHTML=setupNames.map((n,i)=>`<div class="addrow"><input id="sp${i}" data-sp="${i}" value="${esc(n)}" placeholder="Jugador ${i+1}" autocomplete="off">${setupNames.length>2?`<button class="btn ghost" data-sprm="${i}" aria-label="Quitar jugador ${i+1}">×</button>`:""}</div>`).join("");
 }
@@ -403,7 +414,7 @@ function showScreens(){
   if(!adult&&tab!=="legal"){$("agegate").hidden=false;$("setup").hidden=true;$("tab-mesa").hidden=true;$("tab-manual").hidden=true;$("tab-legal").hidden=true;$("backBtn").hidden=true;$("menuBtn").parentElement.hidden=true;document.body.classList.remove("game");document.body.classList.add("gate");return}
   document.body.classList.remove("gate");$("agegate").hidden=true;$("menuBtn").parentElement.hidden=false;
   const io=!!intro;
-  $("manualNotice").hidden=!io;$("manualGo").hidden=!io;if(io)$("menuBtn").parentElement.hidden=true;
+  $("manualNotice").hidden=!io||noticeClosed;document.body.classList.toggle("hasnotice",io&&!noticeClosed);$("manualGo").hidden=!io;if(io)$("menuBtn").parentElement.hidden=true;
   if(io&&tab!=="legal"){$("setup").hidden=true;$("tab-mesa").hidden=true;$("tab-manual").hidden=false;$("backBtn").hidden=false;$("backBtn").textContent="← Cambiar jugadores";return}
   $("setup").hidden=st||tab!=="mesa";
   ["mesa","manual","legal"].forEach(t=>$("tab-"+t).hidden=t!==tab||(t==="mesa"&&!st));
@@ -419,6 +430,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")setMenu(false)});
 function goTab(t){tab=t;setMenu(false);showScreens();window.scrollTo(0,0)}
 document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){prevTab=tab;goTab(g.dataset.go)}});
 let prevTab="mesa";
+$("noticeX").onclick=()=>{noticeClosed=true;$("manualNotice").hidden=true;document.body.classList.remove("hasnotice")};
 $("ageYes").onclick=()=>{window.__adult=true;try{sessionStorage.setItem("gnomo-18","1")}catch(e){}showScreens();window.scrollTo(0,0)};
 document.querySelectorAll("#menu button[data-tab]").forEach(b=>b.onclick=()=>goTab(b.dataset.tab));
 function endGame(){setupNames=S.players.length?[...S.players]:["",""];S=fresh();tab="mesa";save();setMenu(false);all()}
@@ -430,7 +442,7 @@ $("setupAdd").onclick=()=>{setupNames.push("");renderSetup();$("sp"+(setupNames.
 $("setupGo").onclick=()=>{
   const names=setupNames.map(n=>n.trim()).filter(Boolean);
   if(names.length<2){$("setupErr").textContent="Escribe al menos 2 nombres para empezar.";$("setupErr").hidden=false;return}
-  $("setupErr").hidden=true;intro=names;showScreens();window.scrollTo(0,0);
+  $("setupErr").hidden=true;intro=names;noticeClosed=false;showScreens();window.scrollTo(0,0);
 };
 $("manualGo").onclick=()=>{S=fresh();S.players=intro;S.started=true;intro=null;tab="mesa";save();all();window.scrollTo(0,0)};
 function all(anim){showScreens();if(!S.started){renderSetup();return}renderCard(anim);renderRule();renderTurn()}
@@ -441,8 +453,9 @@ function drawCard(){
   if(!S.deck.length){endGame();return}
   const c=S.deck.pop(),who=cur();
   S.last={c,who};S.turn=(S.turn+1)%S.players.length;
-  save();all(true);
+  save();all(true);burst(EMO[c.n]);
 }
+function burst(e){const d=document.createElement("div");d.className="burst";const k=[...e].filter(ch=>ch.codePointAt(0)>0x2000).length;d.style.setProperty("--k",k>2?.55:k>1?.75:1);d.setAttribute("aria-hidden","true");d.innerHTML=`<span>${e}</span>`;document.body.appendChild(d);setTimeout(()=>d.remove(),1000)}
 try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{})}catch(e){}
 load();renderManual();all();
 </script>
