@@ -44,7 +44,7 @@ body.game #tab-mesa{flex:1 1 0;min-height:0;gap:10px}
 .menu button{background:none;border:none;text-align:left;padding:12px 14px;border-radius:8px;font-weight:600;font-size:15px}
 .menu button[aria-current="true"]{color:var(--gold);background:rgba(246,239,220,.08)}
 .back{align-self:flex-start;background:none;border:none;color:var(--gold);font-weight:600;padding:4px 0}
-header{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px}
 h1{font-family:var(--display);font-weight:400;font-size:34px;line-height:1;margin:0;letter-spacing:.5px;color:var(--gold)}
 .meta{font-size:13px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
 .meta b{color:var(--cream);font-weight:600}
@@ -93,7 +93,7 @@ h2{font-family:var(--display);font-weight:400;font-size:20px;margin:0;color:var(
 /* regla */
 .rule{background:var(--cream);color:var(--ink);border-radius:14px;padding:12px 16px;display:flex;flex-direction:column;gap:6px;font-size:14.5px;line-height:1.4}
 #rulebox{flex:none}
-.rule .head{display:flex;align-items:center;gap:12px}
+.rule .head{display:flex;align-items:center;gap:10px}
 .rule .num{font-family:var(--display);font-size:24px;color:var(--red);min-width:36px}
 .rule h3{font-family:var(--display);font-weight:400;margin:0;font-size:19px;line-height:1.1}
 .rule p{margin:0}
@@ -160,8 +160,8 @@ ol.normas li .del{background:none;border:none;color:var(--muted);font-size:13px;
       <button class="menubtn" id="menuBtn" aria-haspopup="true" aria-expanded="false" aria-label="Menú"><span></span><span></span><span></span></button>
       <div class="menu" id="menu" role="menu" hidden>
         <button role="menuitem" data-tab="mesa">Mesa</button>
-        <button role="menuitem" data-tab="poderes" id="menuPoderes">Poderes y normas</button>
         <button role="menuitem" data-tab="manual">Manual de reglas</button>
+        <button role="menuitem" id="menuNew">Nueva partida</button>
       </div>
     </div>
   </header>
@@ -181,11 +181,8 @@ ol.normas li .del{background:none;border:none;color:var(--muted);font-size:13px;
 
   <!-- MESA -->
   <section id="tab-mesa" class="panel">
-    <div class="top" style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><div class="label">Cartas que quedan</div><div class="meta" id="hdrmeta">Ronda <b id="round">1</b> · <b id="left">40</b>/40</div></div>
-    <div class="tally" id="tally" aria-label="Cartas que quedan de cada número"></div>
     <div class="turn" id="turnbox">
       <div class="label">Le toca a</div><strong id="turnname">—</strong>
-      <button class="skip" id="skip">Saltar turno</button>
     </div>
     <div class="stage">
       <div class="cardbox"><div class="card back" id="card" role="button" tabindex="0"></div></div>
@@ -194,44 +191,13 @@ ol.normas li .del{background:none;border:none;color:var(--muted);font-size:13px;
     <div id="rulebox"></div>
   </section>
 
-  <!-- PODERES -->
-  <section id="tab-poderes" class="panel" hidden>
-    <div class="box">
-      <div class="top"><div class="label">4 · Poder del gesto</div></div>
-      <div class="holder" id="h-gesto"></div>
-    </div>
-    <div class="box">
-      <div class="top"><div class="label">9 · Poder de «cállate, puta»</div></div>
-      <div class="holder" id="h-puta"></div>
-    </div>
-    <div class="box">
-      <div class="label">7 · Gnomos en el vaso</div>
-      <div class="chips" id="gnomos"></div>
-    </div>
-    <div class="box">
-      <div class="label">8 · Pases para ir a mear</div>
-      <div class="chips" id="pases"></div>
-    </div>
-    <div class="box">
-      <div class="label">5 · Normas activas</div>
-      <ol class="normas" id="normas"></ol>
-      <p class="empty">Las normas solo se escriben en la mesa, cuando a alguien le sale un 5.</p>
-    </div>
-    <div class="box">
-      <div class="label">Jugadores (en orden de turno)</div>
-      <div class="chips" id="players"></div>
-      <div class="addrow"><input id="playerIn" placeholder="Nombre del jugador"><button class="btn ghost" id="playerAdd">Añadir</button></div>
-    </div>
-    <div id="resetwrap" style="display:flex;justify-content:center"></div>
-  </section>
-
   <!-- MANUAL -->
   <section id="tab-manual" class="manual" hidden>
     <div class="intro">
       <h2>Cómo se juega</h2>
       <p>Gnomo se juega con la baraja española de 40 cartas: del 1 al 10, cuatro de cada número (oros, copas, espadas y bastos).</p>
-      <p>Por turnos, cada jugador saca una carta y cumple lo que dice su número. Se sigue jugando hasta que se acaba la baraja; entonces se baraja de nuevo y empieza otra ronda.</p>
-      <p>Las normas, los gnomos y los poderes no se pierden al cambiar de ronda: duran toda la partida, salvo que una carta diga lo contrario.</p>
+      <p>Por turnos, cada jugador saca una carta y cumple lo que dice su número. La partida dura hasta que se acaba la baraja; entonces termina y se puede empezar otra.</p>
+      <p>Los poderes, las normas y los gnomos duran hasta el final de la partida. La app no los apunta: cada uno tiene que acordarse.</p>
     </div>
     <div id="manualList" class="manual"></div>
     <div class="intro"><p>Bebed con cabeza: cualquiera puede pasar de un trago o cambiar a agua cuando quiera, y nadie conduce después.</p></div>
@@ -254,25 +220,25 @@ const RULES = {
     m:["Reparte dos tragos como prefieras.","Puedes dárselos los dos a una misma persona, dar cada trago a una persona diferente o bebértelos tú."]},
  3:{t:"Tres tragos",s:"Reparte tres tragos como quieras: todos a la misma persona, cada uno a una persona diferente o bébetelos tú.",
     m:["Reparte tres tragos como prefieras.","Puedes dárselos todos a una misma persona, dar cada trago a una persona diferente o bebértelos tú."]},
- 4:{t:"Gesto",tag:"Poder",s:"Ahora tienes el poder del gesto. Cuando te pongas el dedo en la barbilla, todos deben imitarte. El último bebe un trago, y quien no lo haga en 10 segundos también bebe.",
-    m:["Te quedas con el poder del gesto.","Cuando quieras, ponte el dedo en la barbilla sin avisar: todos los demás tienen que imitarte. El último en hacerlo bebe un trago, y cualquiera que no lo haga en 10 segundos también bebe.","Cuando otro jugador saque un 4, te quita el poder y pasa a ser suyo."]},
+ 4:{t:"Gesto",tag:"Poder",s:"Ahora tienes el poder del gesto. Cuando te pongas el dedo en la barbilla, todos deben imitarte. Si pasados 10-15 segundos alguien no se ha dado cuenta, todos los que no lo hayan hecho beben un trago.",
+    m:["Te quedas con el poder del gesto.","Cuando quieras, ponte el dedo en la barbilla sin avisar: todos los demás tienen que imitarte.","Si pasados 10 o 15 segundos hay gente que no se ha dado cuenta, todos los que no lo hayan hecho beben un trago.","Cuando otro jugador saque un 4, te quita el poder y pasa a ser suyo."]},
  5:{t:"Norma",tag:"Dura toda la partida",s:"Inventa una norma. Dura toda la partida. También puedes usarla para cambiar o eliminar una norma anterior.",
     m:["Inventa una norma que todos tendrán que cumplir durante el resto de la partida.","Tu norma también puede modificar una norma anterior, eliminarla o añadirle algo."]},
  6:{t:"Cascada",s:"Empieza a beber de tu vaso. Todos tienen que beber a la vez que tú hasta que pares.",
     m:["Empieza a beber de tu vaso y todos los demás tienen que beber contigo.","Nadie puede parar hasta que tú pares."]},
  7:{t:"Gnomo",tag:"Dura toda la partida",s:"Pon un trozo de papel (o lo que tengas a mano) encima de tu vaso. Cada vez que bebas, déjalo en la mesa y vuelve a ponerlo. Si se te olvida y alguien grita «¡Gnomo!», bebes un trago.",
-    m:["Pon encima de tu vaso un trozo de papel o cualquier cosa que tengas a mano, y déjalo ahí toda la partida.","Cada vez que vayas a beber tienes que quitarlo, dejarlo sobre la mesa y volver a ponerlo encima del vaso después. No vale quedártelo en la mano.","Si se te olvida y alguien se da cuenta, puede gritar «¡Gnomo!» y tendrás que beber un trago. Después vuelves a ponerlo y sigue la ronda."]},
- 8:{t:"Ir a mear",tag:"Pase",s:"Te ganas un pase para ir al baño. Sin esta carta nadie puede ir, salvo que beba tres tragos largos antes de levantarse.",
-    m:["Te ganas un pase para ir al baño. Sin esta carta no puedes ir.","Si es urgente y no tienes la carta, puedes ir igualmente, pero antes tienes que beber tres tragos largos."]},
+    m:["Pon encima de tu vaso un trozo de papel o cualquier cosa que tengas a mano, y déjalo ahí toda la partida.","Cada vez que vayas a beber tienes que quitarlo, dejarlo sobre la mesa y volver a ponerlo encima del vaso después. No vale quedártelo en la mano.","Si se te olvida y alguien se da cuenta, puede gritar «¡Gnomo!» y tendrás que beber un trago. Después vuelves a ponerlo y sigue el juego."]},
+ 8:{t:"Puedes ir al baño",s:"Puedes ir al baño. Sin esta carta nadie puede ir, salvo que beba tres tragos largos antes de levantarse.",
+    m:["Con esta carta puedes ir al baño. Sin ella no puedes ir.","Si es urgente y no tienes la carta, puedes ir igualmente, pero antes tienes que beber tres tragos largos."]},
  9:{t:"Puta",tag:"Poder",s:"Ahora tienes este poder. Cuando alguien te responda a una pregunta o te dé algo que le pidas, debe terminar diciendo «cállate, puta». Si no lo dice, le mandas beber un trago.",
     m:["Te quedas con este poder.","Cuando le hagas una pregunta a alguien, puede ignorarte; pero si te responde, tiene que terminar la frase diciendo «cállate, puta». Si no lo hace, puedes mandarle beber un trago.","Lo mismo si le pides algo y te lo da, aunque no diga nada más: al dártelo tiene que decir «cállate, puta».","Cuando otro jugador saque un 9, te quita el poder y pasa a ser suyo."]},
- 10:{t:"Hidalgo",s:"Acábate lo que te quede en el vaso. Si no quieres bebértelo entero, el resto de jugadores decide entre todos cuánto bebes, hasta un máximo de 3/4 de la copa.",
-    m:["Acábate todo lo que te quede en el vaso.","Si no quieres bebértelo entero, el resto de jugadores se pone de acuerdo y decide cuánto tienes que beber, hasta un máximo de tres cuartos de la copa."]}
+ 10:{t:"Hidalgo",s:"Acábate lo que te quede en el vaso. Si no quieres bebértelo entero, el resto de jugadores decide entre todos cuánto bebes.",
+    m:["Acábate todo lo que te quede en el vaso.","Si no quieres bebértelo entero, el resto de jugadores se pone de acuerdo y decide cuánto tienes que beber."]}
 };
 
-const KEY="gnmo-v1";
+const KEY="gnomo-v2";
 let S;
-function fresh(){return{started:false,players:[],turn:0,round:1,deck:shuffle(newDeck()),last:null,gesto:null,puta:null,gnomos:[],pases:{},normas:[]}}
+function fresh(){return{started:false,players:[],turn:0,deck:shuffle(newDeck()),last:null}}
 function newDeck(){const d=[];for(const s of Object.keys(SUITS))for(let n=1;n<=10;n++)d.push({n,s});return d}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 try{localStorage.removeItem(KEY)}catch(e){}
@@ -282,11 +248,6 @@ const $=id=>document.getElementById(id);
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const cur=()=>S.players.length?S.players[S.turn%S.players.length]:"Jugador";
 
-function renderTally(){
-  const left={};for(let n=1;n<=10;n++)left[n]=0;S.deck.forEach(c=>left[c.n]++);
-  $("tally").innerHTML=Array.from({length:10},(_,i)=>{const n=i+1;return`<div title="Quedan ${left[n]} de ${n}"><span>${n}</span><div class="pips">${[0,1,2,3].map(k=>`<i class="${k<left[n]?"":"out"}"></i>`).join("")}</div></div>`}).join("");
-  $("left").textContent=S.deck.length;$("round").textContent=S.round;
-}
 function renderCard(anim){
   const c=$("card");
   if(!S.last){c.className="card back";c.innerHTML="";c.removeAttribute("style");return}
@@ -298,67 +259,38 @@ function renderCard(anim){
 function renderRule(){
   const box=$("rulebox");
   if(!S.last){box.innerHTML="";return}
-  const n=S.last.c.n,r=RULES[n],who=esc(S.last.who);
-  let extra="";
-  if(n===4&&S.last.prev&&S.last.prev!==S.last.who)extra=`<div class="note">${who} le quita el poder del gesto a ${esc(S.last.prev)}.</div>`;
-  if(n===9&&S.last.prev&&S.last.prev!==S.last.who)extra=`<div class="note">${who} le quita el poder a ${esc(S.last.prev)}.</div>`;
-  if(n===7)extra=`<div class="note">${who} tiene ahora un gnomo en el vaso (${S.gnomos.filter(g=>g===S.last.who).length} en total).</div>`;
-  if(n===8)extra=`<div class="note">${who} tiene ${S.pases[S.last.who]||0} pase(s) para mear. Úsalo desde «Poderes y normas».</div>`;
-  if(n===5)extra=S.last.normaDone?`<div class="note">Norma apuntada. La tienes en «Poderes y normas».</div>`:
-    (S.normas.length?`<ol style="margin:0;padding-left:22px;max-height:5.6em;overflow-y:auto">${S.normas.map((t,i)=>`<li>${esc(t)} <button class="btn ghost" style="padding:2px 8px;font-size:13px" data-norma="${i}">eliminar</button></li>`).join("")}</ol>`:"")+
-    `<div class="row"><input id="ruleNorma" placeholder="Escribe la norma de ${who}"><button class="btn" id="ruleNormaBtn">Apuntar</button></div>`;
-  box.innerHTML=`<div class="rule"><div class="head"><span class="num">${n}</span><div><div class="label" style="color:#7a7060">Carta de ${who}</div><h3>${r.t}</h3></div></div><p>${r.s}</p>${extra}</div>`;
-  if(n===5&&!S.last.normaDone){
-    const go=()=>{const v=$("ruleNorma").value.trim();if(!v)return;S.normas.push(v);S.last.normaDone=true;save();renderRule();renderPowers()};
-    $("ruleNormaBtn").onclick=go;$("ruleNorma").onkeydown=e=>{if(e.key==="Enter")go()};
-  }
+  const n=S.last.c.n,r=RULES[n];
+  box.innerHTML=`<div class="rule"><div class="head"><span class="num">${n}</span><h3>${r.t}</h3></div><p>${r.s}</p></div>`;
 }
 function renderTurn(){
   $("turnname").textContent=S.last?S.last.who:cur();
-  const empty=!S.deck.length, d=$("draw");
-  d.textContent=empty?"Se acabó la baraja · toca la carta para barajar":"Toca la carta para sacar";
-  $("skip").hidden=true;
-}
-function renderPowers(){
-  $("h-gesto").className="holder"+(S.gesto?"":" none");$("h-gesto").textContent=S.gesto||"Nadie todavía. Lo consigue quien saque un 4.";
-  $("h-puta").className="holder"+(S.puta?"":" none");$("h-puta").textContent=S.puta||"Nadie todavía. Lo consigue quien saque un 9.";
-  $("gnomos").innerHTML=S.gnomos.length?S.gnomos.map((g,i)=>`<span class="chip">${esc(g)}<button aria-label="Quitar gnomo" data-gn="${i}">×</button></span>`).join(""):`<p class="empty">Nadie lleva gnomo. Sale con el 7.</p>`;
-  const ps=Object.entries(S.pases).filter(([,v])=>v>0);
-  $("pases").innerHTML=ps.length?ps.map(([p,v])=>`<span class="chip">${esc(p)} · ${v}<button class="use" data-pase="${esc(p)}">Usar</button></span>`).join(""):`<p class="empty">Nadie tiene pase. Sale con el 8.</p>`;
-  $("normas").innerHTML=S.normas.length?S.normas.map(t=>`<li>${esc(t)}</li>`).join(""):`<p class="empty" style="margin-left:-22px">Todavía no hay normas.</p>`;
-  $("players").innerHTML=S.players.map((p,i)=>`<span class="chip">${esc(p)}<button aria-label="Quitar a ${esc(p)}" data-pl="${i}">×</button></span>`).join("")||`<p class="empty">Añade al menos un jugador.</p>`;
-  renderReset();
-}
-let confirming=false;
-function renderReset(){
-  $("resetwrap").innerHTML=confirming?`<div class="confirm">¿Borrar todo y empezar una partida nueva? <button class="btn" id="rYes">Sí, empezar</button><button class="btn ghost" id="rNo">Cancelar</button></div>`:`<button class="reset" id="rAsk">Empezar partida nueva</button>`;
-  if(confirming){$("rYes").onclick=()=>{setupNames=S.players.length?[...S.players]:["",""];S=fresh();confirming=false;save();all()};$("rNo").onclick=()=>{confirming=false;renderReset()}}
-  else $("rAsk").onclick=()=>{confirming=true;renderReset()};
+  $("draw").textContent=S.deck.length?"Toca la carta para sacar":"Se acabó la baraja · toca la carta para terminar";
 }
 function renderManual(){
   $("manualList").innerHTML=Object.entries(RULES).map(([n,r])=>`<article class="mrule"><span class="num">${n}</span><div>${r.tag?`<span class="tag">${r.tag}</span>`:""}<h3>${r.t}</h3>${r.m.map(p=>`<p>${p}</p>`).join("")}</div></article>`).join("");
 }
-let setupNames=["",""],tab="mesa";
+let setupNames=["",""],tab="mesa",newArmed=false;
 function renderSetup(){
   $("setupList").innerHTML=setupNames.map((n,i)=>`<div class="addrow"><input id="sp${i}" data-sp="${i}" value="${esc(n)}" placeholder="Jugador ${i+1}" autocomplete="off">${setupNames.length>2?`<button class="btn ghost" data-sprm="${i}" aria-label="Quitar jugador ${i+1}">×</button>`:""}</div>`).join("");
 }
 function showScreens(){
   const st=S.started;
   document.body.classList.toggle("game",st&&tab==="mesa");
-  if(!st&&tab==="poderes")tab="mesa";
   $("setup").hidden=st||tab!=="mesa";
-  ["mesa","poderes","manual"].forEach(t=>$("tab-"+t).hidden=t!==tab||(t==="mesa"&&!st));
-  $("menuPoderes").hidden=!st;
+  ["mesa","manual"].forEach(t=>$("tab-"+t).hidden=t!==tab||(t==="mesa"&&!st));
+  $("menuNew").hidden=!st;
   $("backBtn").hidden=tab==="mesa";
   $("backBtn").textContent=st?"← Volver a la mesa":"← Volver";
-  document.querySelectorAll("#menu button").forEach(x=>x.setAttribute("aria-current",x.dataset.tab===tab));
+  document.querySelectorAll("#menu button[data-tab]").forEach(x=>x.setAttribute("aria-current",x.dataset.tab===tab));
 }
-function setMenu(open){$("menu").hidden=!open;$("menuBtn").setAttribute("aria-expanded",open)}
+function setMenu(open){$("menu").hidden=!open;$("menuBtn").setAttribute("aria-expanded",open);newArmed=false;$("menuNew").textContent="Nueva partida"}
 $("menuBtn").onclick=e=>{e.stopPropagation();setMenu($("menu").hidden)};
 document.addEventListener("click",e=>{if(!$("menu").hidden&&!e.target.closest(".menuwrap"))setMenu(false)});
 document.addEventListener("keydown",e=>{if(e.key==="Escape")setMenu(false)});
 function goTab(t){tab=t;setMenu(false);showScreens();window.scrollTo(0,0)}
-document.querySelectorAll("#menu button").forEach(b=>b.onclick=()=>goTab(b.dataset.tab));
+document.querySelectorAll("#menu button[data-tab]").forEach(b=>b.onclick=()=>goTab(b.dataset.tab));
+function endGame(){setupNames=S.players.length?[...S.players]:["",""];S=fresh();tab="mesa";save();setMenu(false);all()}
+$("menuNew").onclick=()=>{if(!newArmed){newArmed=true;$("menuNew").textContent="¿Seguro? Toca otra vez";return}endGame()};
 $("backBtn").onclick=()=>goTab("mesa");
 $("setupList").addEventListener("input",e=>{if(e.target.dataset.sp!==undefined)setupNames[+e.target.dataset.sp]=e.target.value});
 $("setupList").addEventListener("click",e=>{if(e.target.dataset.sprm!==undefined){setupNames.splice(+e.target.dataset.sprm,1);renderSetup()}});
@@ -368,30 +300,16 @@ $("setupGo").onclick=()=>{
   if(names.length<2){$("setupErr").textContent="Escribe al menos 2 nombres para empezar.";$("setupErr").hidden=false;return}
   $("setupErr").hidden=true;S=fresh();S.players=names;S.started=true;tab="mesa";save();all();
 };
-function all(anim){showScreens();if(!S.started){renderSetup();return}renderTally();renderCard(anim);renderRule();renderTurn();renderPowers()}
+function all(anim){showScreens();if(!S.started){renderSetup();return}renderCard(anim);renderRule();renderTurn()}
 
 $("card").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();drawCard()}};
 $("card").onclick=()=>drawCard();
 function drawCard(){
-  if(!S.deck.length){S.deck=shuffle(newDeck());S.round++;S.last=null;save();all();return}
-  const c=S.deck.pop(),who=cur();const last={c,who};
-  if(c.n===4){last.prev=S.gesto;S.gesto=who}
-  if(c.n===9){last.prev=S.puta;S.puta=who}
-  if(c.n===7)S.gnomos.push(who);
-  if(c.n===8)S.pases[who]=(S.pases[who]||0)+1;
-  S.last=last;if(S.players.length)S.turn=(S.turn+1)%S.players.length;
+  if(!S.deck.length){endGame();return}
+  const c=S.deck.pop(),who=cur();
+  S.last={c,who};S.turn=(S.turn+1)%S.players.length;
   save();all(true);
 }
-$("skip").onclick=()=>{if(S.players.length){S.turn=(S.turn+1)%S.players.length;save();renderTurn()}};
-document.addEventListener("click",e=>{
-  const t=e.target;
-  if(t.dataset.gn!==undefined){S.gnomos.splice(+t.dataset.gn,1);save();renderPowers()}
-  if(t.dataset.pase!==undefined){S.pases[t.dataset.pase]--;save();renderPowers()}
-  if(t.dataset.norma!==undefined&&S.last&&S.last.c.n===5&&!S.last.normaDone){S.normas.splice(+t.dataset.norma,1);S.last.normaDone=true;save();renderRule();renderPowers()}
-  if(t.dataset.pl!==undefined){const i=+t.dataset.pl;S.players.splice(i,1);if(S.turn>=S.players.length)S.turn=0;save();renderPowers();renderTurn()}
-});
-function addPlayer(){const v=$("playerIn").value.trim();if(!v)return;S.players.push(v);$("playerIn").value="";save();renderPowers();renderTurn()}
-$("playerAdd").onclick=addPlayer;$("playerIn").onkeydown=e=>{if(e.key==="Enter")addPlayer()};
 try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{})}catch(e){}
 load();renderManual();all();
 </script>
