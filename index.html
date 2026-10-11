@@ -151,7 +151,13 @@ body.gate .agegate{margin-block:auto}
 .endlogo{width:84px;height:84px}
 .endcard .sub{font-size:13px;color:var(--muted);margin-top:-4px}
 .btn.wide{width:100%;max-width:320px;padding:14px;font-size:16px}
-.plist{margin:0;padding-left:22px;text-align:left;align-self:stretch;display:flex;flex-direction:column;gap:2px;max-height:30vh;overflow-y:auto}
+.plist{margin:0;padding:0;list-style:none;align-self:stretch;display:flex;flex-direction:column;gap:6px;max-height:34vh;overflow-y:auto}
+.plist li{display:flex;align-items:center;gap:6px}
+.plist .pn{width:1.6em;flex:none;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;font-size:14px}
+.plist input{flex:1;min-width:0;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.25)}
+.plist .del{flex:none;min-width:40px;height:38px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--cream);font-size:18px;padding:0 10px}
+.plist .del.armed{background:var(--red);border-color:var(--red);font-size:13px;font-weight:700}
+.plist .del:disabled{opacity:.35}
 .addrow.full{align-self:stretch}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
@@ -217,7 +223,7 @@ body.hasnotice .app{padding-bottom:170px}
         <button role="menuitem" data-tab="mesa">Mesa</button>
         <button role="menuitem" data-tab="manual">Manual de reglas</button>
         <button role="menuitem" data-tab="legal">Aviso legal y privacidad</button>
-        <button role="menuitem" id="menuAdd">Añadir jugador</button>
+        <button role="menuitem" id="menuAdd">Jugadores</button>
         <button role="menuitem" id="menuNew">Nueva partida</button>
       </div>
     </div>
@@ -239,8 +245,8 @@ body.hasnotice .app{padding-bottom:170px}
 
   <div class="endov" id="addov" role="dialog" aria-modal="true" aria-labelledby="addTitle" hidden>
     <div class="endcard">
-      <h2 id="addTitle">Añadir jugador</h2>
-      <p class="sub" style="margin:0">Entra al final del orden de turnos.</p>
+      <h2 id="addTitle">Jugadores</h2>
+      <p class="sub" style="margin:0">Toca un nombre para cambiarlo. Los nuevos entran al final del orden de turnos.</p>
       <ol class="plist" id="plist"></ol>
       <div class="addrow full"><input id="addIn" placeholder="Nombre del jugador" autocomplete="off" enterkeyhint="done"><button class="btn" id="addBtn" style="background:var(--gold);color:var(--ink)">Añadir</button></div>
       <p class="sub" id="addMsg" style="margin:0" hidden></p>
@@ -315,7 +321,7 @@ body.hasnotice .app{padding-bottom:170px}
     <div class="intro">
       <h2>Cómo se juega</h2>
       <p>Por turnos, cada jugador saca una carta y cumple lo que dice su número. Cuando se acaba la baraja, podéis volver a barajar y seguir jugando con las mismas normas y poderes, o empezar una partida nueva.</p>
-      <p>Si llega alguien a mitad de partida, añadidlo desde el menú de la esquina superior derecha: entra al final del orden de turnos.</p>
+      <p>Desde «Jugadores», en el menú de la esquina superior derecha, podéis añadir, quitar o cambiar el nombre de cualquier jugador a mitad de partida. Los nuevos entran al final del orden de turnos.</p>
     </div>
     <div id="manualList" class="manual"></div>
     <button class="draw" id="manualGo" style="align-self:center" hidden>Empezar partida</button>
@@ -471,11 +477,25 @@ document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g
 let prevTab="mesa";
 $("endGo").onclick=()=>{$("endov").hidden=true;endGame()};
 $("endMore").onclick=()=>{$("endov").hidden=true;S.deck=shuffle(newDeck());S.last=null;save();all()};
-function renderPlist(){$("plist").innerHTML=S.players.map(p=>`<li>${esc(p)}</li>`).join("")}
-$("menuAdd").onclick=()=>{setMenu(false);renderPlist();$("addMsg").hidden=true;$("addIn").value="";$("addov").hidden=false;$("addIn").focus()};
-function addPlayer(){const v=$("addIn").value.trim();if(!v)return;S.players.push(v);save();renderPlist();$("addIn").value="";$("addMsg").textContent=`${v} se ha unido a la partida.`;$("addMsg").hidden=false;$("addIn").focus()}
+let armedDel=-1;
+function renderPlist(){
+  const one=S.players.length<=2;
+  $("plist").innerHTML=S.players.map((p,i)=>`<li><span class="pn">${i+1}.</span><input data-pe="${i}" value="${esc(p)}" aria-label="Nombre del jugador ${i+1}" autocomplete="off" enterkeyhint="done"><button class="del${armedDel===i?" armed":""}" data-pd="${i}" ${one?"disabled":""} aria-label="Quitar a ${esc(p)}">${armedDel===i?"¿Quitar?":"×"}</button></li>`).join("");
+}
+function msg(t){$("addMsg").textContent=t;$("addMsg").hidden=false}
+$("menuAdd").onclick=()=>{setMenu(false);armedDel=-1;renderPlist();$("addMsg").hidden=true;$("addIn").value="";$("addov").hidden=false};
+function addPlayer(){const v=$("addIn").value.trim();if(!v)return;S.players.push(v);armedDel=-1;save();renderPlist();$("addIn").value="";msg(`${v} se ha unido a la partida.`);$("addIn").focus()}
 $("addBtn").onclick=addPlayer;$("addIn").onkeydown=e=>{if(e.key==="Enter")addPlayer()};
-$("addClose").onclick=()=>{$("addov").hidden=true};
+$("plist").addEventListener("change",e=>{const i=e.target.dataset.pe;if(i===undefined)return;const v=e.target.value.trim(),old=S.players[+i];
+  if(!v){e.target.value=old;return}
+  if(v!==old){S.players[+i]=v;if(S.last&&S.last.who===old)S.last.who=v;save();renderTurn();msg(`${old} ahora se llama ${v}.`)}});
+$("plist").addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.dataset.pe!==undefined)e.target.blur()});
+$("plist").addEventListener("click",e=>{const b=e.target.closest("[data-pd]");if(!b||b.disabled)return;const i=+b.dataset.pd;
+  if(armedDel!==i){armedDel=i;renderPlist();return}
+  const name=S.players[i];S.players.splice(i,1);
+  if(i<S.turn)S.turn--; if(S.turn>=S.players.length)S.turn=0;
+  armedDel=-1;save();renderPlist();renderTurn();msg(`${name} ha salido de la partida.`)});
+$("addClose").onclick=()=>{document.activeElement&&document.activeElement.blur();$("addov").hidden=true;renderTurn()};
 $("noticeX").onclick=()=>{noticeClosed=true;$("manualNotice").hidden=true;document.body.classList.remove("hasnotice")};
 $("ageYes").onclick=()=>{window.__adult=true;try{sessionStorage.setItem("gnomo-18","1")}catch(e){}showScreens();window.scrollTo(0,0)};
 document.querySelectorAll("#menu button[data-tab]").forEach(b=>b.onclick=()=>goTab(b.dataset.tab));
