@@ -69,6 +69,8 @@ h2{font-family:var(--display);font-weight:400;font-size:20px;margin:0;color:var(
 .card{height:100%;max-height:330px;width:auto;aspect-ratio:2/3;max-width:100%;border-radius:14px;position:relative;
   background:var(--cream);color:var(--ink);box-shadow:0 14px 30px rgba(0,0,0,.35),inset 0 0 0 6px var(--cream),inset 0 0 0 8px var(--suit,var(--red));
   display:flex;align-items:center;justify-content:center;transition:transform .35s}
+.card.face{background:#fff;box-shadow:0 14px 30px rgba(0,0,0,.35)}
+.card.face svg.cf{width:100%;height:100%;display:block}
 .card.back{background:repeating-linear-gradient(45deg,var(--red) 0 8px,#a83224 8px 16px);box-shadow:0 14px 30px rgba(0,0,0,.35),inset 0 0 0 8px var(--cream)}
 .card.back::after{content:"GNOMO";font-family:var(--display);color:var(--cream);font-size:clamp(16px,4vh,28px);background:var(--red);padding:6px 12px;border-radius:8px;border:2px solid var(--cream)}
 .card .n{position:absolute;font-family:var(--display);font-size:clamp(18px,5vh,30px);line-height:1;color:var(--suit)}
@@ -195,9 +197,7 @@ ol.normas li .del{background:none;border:none;color:var(--muted);font-size:13px;
   <section id="tab-manual" class="manual" hidden>
     <div class="intro">
       <h2>Cómo se juega</h2>
-      <p>Gnomo se juega con la baraja española de 40 cartas: del 1 al 10, cuatro de cada número (oros, copas, espadas y bastos).</p>
       <p>Por turnos, cada jugador saca una carta y cumple lo que dice su número. La partida dura hasta que se acaba la baraja; entonces termina y se puede empezar otra.</p>
-      <p>Los poderes, las normas y los gnomos duran hasta el final de la partida. La app no los apunta: cada uno tiene que acordarse.</p>
     </div>
     <div id="manualList" class="manual"></div>
     <div class="intro"><p>Bebed con cabeza: cualquiera puede pasar de un trago o cambiar a agua cuando quiera, y nadie conduce después.</p></div>
@@ -248,12 +248,53 @@ const $=id=>document.getElementById(id);
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const cur=()=>S.players.length?S.players[S.turn%S.players.length]:"Jugador";
 
+const PIPS={
+ oros:'<circle r="18" fill="#d9a521" stroke="#5a3d0c" stroke-width="1.6"/><circle r="13.5" fill="#f4d46a" stroke="#5a3d0c" stroke-width="1"/><circle r="8" fill="#e0a92a" stroke="#5a3d0c" stroke-width="1"/><circle r="3.5" fill="#c0392b"/><g fill="#c0392b"><circle cx="0" cy="-11" r="1.3"/><circle cx="0" cy="11" r="1.3"/><circle cx="-11" cy="0" r="1.3"/><circle cx="11" cy="0" r="1.3"/><circle cx="7.8" cy="7.8" r="1.3"/><circle cx="-7.8" cy="7.8" r="1.3"/><circle cx="7.8" cy="-7.8" r="1.3"/><circle cx="-7.8" cy="-7.8" r="1.3"/></g>',
+ copas:'<path d="M-16 -19H16C16 -4 8 4 0 4C-8 4 -16 -4 -16 -19Z" fill="#c0392b" stroke="#3a2410" stroke-width="1.4"/><path d="M-16 -19H16L15.5 -14H-15.5Z" fill="#e8b52a" stroke="#3a2410" stroke-width="1"/><path d="M-9 -10Q0 -6 9 -10" fill="none" stroke="#e8b52a" stroke-width="1.6"/><rect x="-2.6" y="4" width="5.2" height="9" fill="#e8b52a" stroke="#3a2410" stroke-width="1"/><circle cy="8.5" r="3.6" fill="#2c6fbf" stroke="#3a2410" stroke-width="1"/><path d="M-11 19H11L6 12.5H-6Z" fill="#e8b52a" stroke="#3a2410" stroke-width="1.2"/>',
+ espadas:'<path d="M0 -31L4.2 -25V13H-4.2V-25Z" fill="#9fd0f0" stroke="#22303c" stroke-width="1.3"/><path d="M0 -27V12" stroke="#5f97c4" stroke-width="1"/><rect x="-11" y="13" width="22" height="4.5" rx="2" fill="#c0392b" stroke="#22303c" stroke-width="1.1"/><rect x="-2.6" y="17.5" width="5.2" height="9" fill="#e8b52a" stroke="#22303c" stroke-width="1"/><circle cy="29" r="3.3" fill="#e8b52a" stroke="#22303c" stroke-width="1"/>',
+ bastos:'<path d="M-4.5 31C-6.5 12 -10.5 -8 -9 -23C-7.5 -32 7.5 -32 9 -23C10.5 -8 6.5 12 4.5 31Z" fill="#86b83e" stroke="#2c4512" stroke-width="1.4"/><path d="M-3 -24C-4 -10 -3 8 -1.5 26" fill="none" stroke="#c9e48a" stroke-width="2.2" stroke-linecap="round"/><g fill="#5c8a24" stroke="#2c4512" stroke-width=".8"><ellipse cx="-7" cy="-12" rx="2.6" ry="1.8"/><ellipse cx="7" cy="-2" rx="2.6" ry="1.8"/><ellipse cx="-6" cy="10" rx="2.4" ry="1.7"/></g>'
+};
+const LAYOUT={1:[[100,150]],2:[[100,85],[100,215]],3:[[100,75],[100,150],[100,225]],
+ 4:[[70,85],[130,85],[70,215],[130,215]],5:[[70,80],[130,80],[100,150],[70,220],[130,220]],
+ 6:[[70,75],[130,75],[70,150],[130,150],[70,225],[130,225]],7:[[70,72],[130,72],[100,111],[70,150],[130,150],[70,228],[130,228]],
+ 8:[[70,66],[130,66],[70,122],[130,122],[70,178],[130,178],[70,234],[130,234]],
+ 9:[[70,66],[130,66],[70,122],[130,122],[100,150],[70,178],[130,178],[70,234],[130,234]]};
+function cardSVG(n,s){
+  const tall=s==="espadas"||s==="bastos";
+  const k={1:2.3,2:1.25,3:1.15,4:1.1,5:1,6:tall?.85:.95,7:tall?.72:.85,8:tall?.62:.8,9:tall?.62:.78}[n]||1;
+  let body="";
+  if(n<=9) body=LAYOUT[n].map(([x,y])=>`<g transform="translate(${x} ${y}) scale(${k})">${PIPS[s]}</g>`).join("");
+  else {
+    const robe={oros:"#2c6fbf",copas:"#c0392b",espadas:"#2c6fbf",bastos:"#c0392b"}[s], trim={oros:"#c0392b",copas:"#2c6fbf",espadas:"#c0392b",bastos:"#2c6fbf"}[s];
+    body=`<g stroke="#2a2018" stroke-width="1.3" stroke-linejoin="round">
+      <path d="M86 228L82 262H95L98 228Z" fill="#e8b52a"/><path d="M114 228L118 262H105L102 228Z" fill="#e8b52a"/>
+      <path d="M78 262H96V267H74Z" fill="#3a2410"/><path d="M104 262H122L126 267H104Z" fill="#3a2410"/>
+      <path d="M76 120Q100 108 124 120L130 232H70Z" fill="${robe}"/>
+      <path d="M100 116V232" stroke="${trim}" stroke-width="5"/><path d="M72 196H128" stroke="#e8b52a" stroke-width="4"/>
+      <path d="M76 120L62 176L70 180L84 136Z" fill="${robe}"/><path d="M124 120L138 160L130 166L118 136Z" fill="${robe}"/>
+      <circle cx="65" cy="180" r="6" fill="#f2c9a0"/><circle cx="135" cy="164" r="6" fill="#f2c9a0"/>
+      <rect x="93" y="104" width="14" height="14" fill="#f2c9a0"/>
+      <ellipse cx="100" cy="88" rx="16" ry="19" fill="#f2c9a0"/>
+      <path d="M84 84Q84 64 100 64Q116 64 116 84Q112 74 100 74Q88 74 84 84Z" fill="#8a5a2b"/>
+      <path d="M80 70Q100 46 122 66L118 72Q100 58 84 74Z" fill="${trim}"/><path d="M118 62Q128 52 132 60" fill="none" stroke="#e8b52a" stroke-width="2"/>
+      <circle cx="94" cy="88" r="1.4" fill="#2a2018" stroke="none"/><circle cx="106" cy="88" r="1.4" fill="#2a2018" stroke="none"/>
+      <path d="M95 97Q100 100 105 97" fill="none" stroke-width="1.1"/></g>
+      <g transform="translate(${tall?150:148} ${tall?150:140}) scale(${tall?1.05:.95})">${PIPS[s]}</g>`;
+  }
+  const corner=`<text x="0" y="0" font-family="Georgia,'Times New Roman',serif" font-weight="700" font-size="26" fill="#1d1a14" text-anchor="middle">${n}</text><g transform="translate(0 18) scale(.36)">${PIPS[s]}</g>`;
+  return `<svg class="cf" viewBox="0 0 200 300" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+    <rect x="1" y="1" width="198" height="298" rx="14" fill="#fff"/>
+    <rect x="38" y="30" width="124" height="240" fill="#fbf3c2" stroke="#2a2018" stroke-width="1.4"/>
+    ${body}
+    <g transform="translate(20 34)">${corner}</g>
+    <g transform="rotate(180 100 150) translate(20 34)">${corner}</g></svg>`;
+}
 function renderCard(anim){
   const c=$("card");
   if(!S.last){c.className="card back";c.innerHTML="";c.removeAttribute("style");return}
   const su=SUITS[S.last.c.s];
-  c.className="card"+(anim?" flip":"");c.style.setProperty("--suit",su.color);
-  c.innerHTML=`<span class="n tl">${S.last.c.n}</span>${su.svg}<span class="n br">${S.last.c.n}</span>`;
+  c.className="card face"+(anim?" flip":"");c.removeAttribute("style");
+  c.innerHTML=cardSVG(S.last.c.n,S.last.c.s);
   c.setAttribute("aria-label",`${S.last.c.n} de ${su.name}`);
 }
 function renderRule(){
