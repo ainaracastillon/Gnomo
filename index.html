@@ -55,8 +55,9 @@ h2{font-family:var(--display);font-weight:400;font-size:20px;margin:0;color:var(
 .turn .skip{background:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px;color:var(--muted)}
 
 /* carta */
-.stage{display:flex;flex-direction:column;align-items:center;gap:16px}
-.card{width:min(62vw,230px);aspect-ratio:2/3;max-width:100%;border-radius:14px;position:relative;
+#tab-mesa{min-height:calc(100dvh - 100px)}
+.stage{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding-block:8px}
+.card{width:min(58vw,220px,27dvh);aspect-ratio:2/3;max-width:100%;border-radius:14px;position:relative;
   background:var(--cream);color:var(--ink);box-shadow:0 14px 30px rgba(0,0,0,.35),inset 0 0 0 6px var(--cream),inset 0 0 0 8px var(--suit,var(--red));
   display:flex;align-items:center;justify-content:center;transition:transform .35s}
 .card.back{background:repeating-linear-gradient(45deg,var(--red) 0 8px,#a83224 8px 16px);box-shadow:0 14px 30px rgba(0,0,0,.35),inset 0 0 0 8px var(--cream)}
@@ -65,7 +66,7 @@ h2{font-family:var(--display);font-weight:400;font-size:20px;margin:0;color:var(
 .card .n.tl{top:16px;left:18px}.card .n.br{bottom:16px;right:18px;transform:rotate(180deg)}
 .card svg{width:46%;height:auto;fill:var(--suit)}
 .card .suitname{position:absolute;bottom:18px;left:0;right:0;text-align:center;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7a7060;font-weight:600}
-.card{cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+.card{align-self:center;margin-inline:auto;flex:none;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
 .card:active{transform:scale(.97)}
 .hint{margin:0;font-size:14px;color:var(--muted);letter-spacing:.04em}
 .card.flip{animation:flip .4s ease}
@@ -281,7 +282,7 @@ function renderCard(anim){
 }
 function renderRule(){
   const box=$("rulebox");
-  if(!S.last){box.innerHTML=`<div class="rule"><p><b>Saca la primera carta.</b> Quedan 40 cartas en la baraja. Abajo tienes el manual con todas las reglas.</p></div>`;return}
+  if(!S.last){box.innerHTML="";return}
   const n=S.last.c.n,r=RULES[n],who=esc(S.last.who);
   let extra="";
   if(n===4)extra=`<div class="note">${who} tiene ahora el poder del gesto${S.last.prev&&S.last.prev!==S.last.who?` (se lo quita a ${esc(S.last.prev)})`:""}.</div>`;
