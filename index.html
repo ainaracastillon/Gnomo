@@ -300,10 +300,10 @@ function renderRule(){
   }
 }
 function renderTurn(){
-  $("turnname").textContent=S.deck.length?cur():"—";
+  $("turnname").textContent=S.last?S.last.who:cur();
   const empty=!S.deck.length, d=$("draw");
   d.textContent=empty?"Toca la carta para barajar de nuevo":"Toca la carta para sacar";
-  $("skip").hidden=empty||S.players.length<2;
+  $("skip").hidden=true;
   if(empty&&!$("endnote")){const e=document.createElement("div");e.id="endnote";e.className="endbox";e.innerHTML=`<h2>Se acabó la baraja</h2><p style="margin:0;color:var(--muted)">Barajad y empezad la ronda ${S.round+1}. Las normas, gnomos y poderes siguen.</p>`;$("rulebox").after(e)}
   if(!empty&&$("endnote"))$("endnote").remove();
 }
