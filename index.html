@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0e3324">
+<meta name="apple-mobile-web-app-title" content="Gnomo">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml, %3Csvg viewBox=%220 0 64 64%22 xmlns=%22http://www.w3.org/2000/svg%22%3E %3Cpath d=%22M33 2 C38 10 46 22 51 36 H13 C18 22 26 10 33 2Z%22 fill=%22%23c0392b%22/%3E %3Ccircle cx=%2233%22 cy=%223%22 r=%222.5%22 fill=%22%23d9a521%22/%3E %3Crect x=%2210%22 y=%2233%22 width=%2244%22 height=%227%22 rx=%223.5%22 fill=%22%23a83224%22/%3E %3Crect x=%2217%22 y=%2239%22 width=%2230%22 height=%2210%22 fill=%22%23f2c9a0%22/%3E %3Ccircle cx=%2226%22 cy=%2243%22 r=%221.8%22 fill=%22%231d1a14%22/%3E%3Ccircle cx=%2240%22 cy=%2243%22 r=%221.8%22 fill=%22%231d1a14%22/%3E %3Cpath d=%22M14 44 C14 58 22 63 33 63 C44 63 52 58 52 44 C46 50 40 50 33 49 C26 50 20 50 14 44Z%22 fill=%22%23f6efdc%22/%3E %3Cellipse cx=%2233%22 cy=%2247%22 rx=%224.5%22 ry=%224%22 fill=%22%23e08d6d%22/%3E %3C/svg%3E">
 <title>Gnomo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,14 +24,18 @@
   --body:"Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
   color-scheme:dark;
 }
-html,body{height:100%}
+html,body{height:100%;overflow-x:hidden}
+input{font-size:16px!important}
 body{background:radial-gradient(120% 80% at 50% 0%,var(--felt-3),var(--felt) 55%,var(--felt-2));background-color:var(--felt);color:var(--cream);font-family:var(--body);font-size:15px;line-height:1.5}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 button,input{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.app{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:14px 40px;display:flex;flex-direction:column;gap:16px}
+.app{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:12px 40px;display:flex;flex-direction:column;gap:14px}
+body.game{overflow:hidden;position:fixed;inset:0;width:100%}
+body.game .app{height:100%;padding-block:10px calc(10px + env(safe-area-inset-bottom,0px));gap:10px}
+body.game #tab-mesa{flex:1 1 0;min-height:0;gap:10px}
 .logo{width:44px;height:44px;flex:none}
 .menuwrap{position:relative}
 .menubtn{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.2);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px}
@@ -44,31 +53,31 @@ h2{font-family:var(--display);font-weight:400;font-size:20px;margin:0;color:var(
 
 /* contador de números */
 .tally{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
-.tally div{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;border-radius:8px;background:rgba(0,0,0,.18)}
+.tally div{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;min-width:0;border-radius:8px;background:rgba(0,0,0,.18)}
 .tally span{font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
 .pips{display:flex;gap:2px}
 .pips i{width:5px;height:5px;border-radius:50%;background:var(--gold)}
 .pips i.out{background:rgba(246,239,220,.15)}
 
-.turn{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(0,0,0,.2);border-radius:12px;padding:10px 14px}
-.turn strong{font-size:18px}
+.turn{display:flex;align-items:baseline;gap:10px;background:rgba(0,0,0,.2);border-radius:12px;padding:8px 14px;flex:none}
+.turn strong{font-size:17px;min-width:0;overflow-wrap:anywhere}
 .turn .skip{background:none;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px;color:var(--muted)}
 
 /* carta */
-#tab-mesa{min-height:calc(100dvh - 100px)}
-.stage{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding-block:8px}
-.card{width:min(58vw,220px,27dvh);aspect-ratio:2/3;max-width:100%;border-radius:14px;position:relative;
+.stage{flex:1 1 0;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.cardbox{flex:1 1 0;min-height:0;width:100%;display:flex;align-items:center;justify-content:center}
+.card{height:100%;max-height:330px;width:auto;aspect-ratio:2/3;max-width:100%;border-radius:14px;position:relative;
   background:var(--cream);color:var(--ink);box-shadow:0 14px 30px rgba(0,0,0,.35),inset 0 0 0 6px var(--cream),inset 0 0 0 8px var(--suit,var(--red));
   display:flex;align-items:center;justify-content:center;transition:transform .35s}
 .card.back{background:repeating-linear-gradient(45deg,var(--red) 0 8px,#a83224 8px 16px);box-shadow:0 14px 30px rgba(0,0,0,.35),inset 0 0 0 8px var(--cream)}
-.card.back::after{content:"GNOMO";font-family:var(--display);color:var(--cream);font-size:30px;background:var(--red);padding:6px 12px;border-radius:8px;border:2px solid var(--cream)}
-.card .n{position:absolute;font-family:var(--display);font-size:30px;line-height:1;color:var(--suit)}
-.card .n.tl{top:16px;left:18px}.card .n.br{bottom:16px;right:18px;transform:rotate(180deg)}
+.card.back::after{content:"GNOMO";font-family:var(--display);color:var(--cream);font-size:clamp(16px,4vh,28px);background:var(--red);padding:6px 12px;border-radius:8px;border:2px solid var(--cream)}
+.card .n{position:absolute;font-family:var(--display);font-size:clamp(18px,5vh,30px);line-height:1;color:var(--suit)}
+.card .n.tl{top:8%;left:9%}.card .n.br{bottom:8%;right:9%;transform:rotate(180deg)}
 .card svg{width:46%;height:auto;fill:var(--suit)}
 .card .suitname{position:absolute;bottom:18px;left:0;right:0;text-align:center;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#7a7060;font-weight:600}
 .card{align-self:center;margin-inline:auto;flex:none;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
 .card:active{transform:scale(.97)}
-.hint{margin:0;font-size:14px;color:var(--muted);letter-spacing:.04em}
+.hint{margin:0;flex:none;font-size:13px;color:var(--muted);letter-spacing:.04em}
 .card.flip{animation:flip .4s ease}
 @keyframes flip{from{transform:rotateY(90deg) scale(.95)}to{transform:none}}
 @media (prefers-reduced-motion:reduce){.card.flip{animation:none}}
@@ -76,13 +85,19 @@ h2{font-family:var(--display);font-weight:400;font-size:20px;margin:0;color:var(
 .draw{width:100%;max-width:320px;padding:16px;border:none;border-radius:14px;background:var(--gold);color:var(--ink);font-family:var(--display);font-size:20px;box-shadow:0 4px 0 #9c7512}
 .draw:active{transform:translateY(2px);box-shadow:0 2px 0 #9c7512}
 
+@media (max-height:640px){
+  .logo,.menubtn{width:36px;height:36px} h1{font-size:28px}
+  .tally div{padding:2px 0} .tally span{font-size:12px}
+  .turn{padding:6px 12px} .rule{font-size:13px;padding:10px 14px}
+}
 /* regla */
-.rule{background:var(--cream);color:var(--ink);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.rule{background:var(--cream);color:var(--ink);border-radius:14px;padding:12px 16px;display:flex;flex-direction:column;gap:6px;font-size:14.5px;line-height:1.4}
+#rulebox{flex:none}
 .rule .head{display:flex;align-items:center;gap:12px}
-.rule .num{font-family:var(--display);font-size:28px;color:var(--red);min-width:36px}
-.rule h3{font-family:var(--display);font-weight:400;margin:0;font-size:22px}
+.rule .num{font-family:var(--display);font-size:24px;color:var(--red);min-width:36px}
+.rule h3{font-family:var(--display);font-weight:400;margin:0;font-size:19px;line-height:1.1}
 .rule p{margin:0}
-.rule .note{background:#ebe1c4;border-radius:10px;padding:10px 12px;font-size:14px}
+.rule .note{background:#ebe1c4;border-radius:10px;padding:6px 10px;font-size:13.5px}
 .rule .row{display:flex;gap:8px;flex-wrap:wrap}
 .rule input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:1.5px solid #cdbf9b;background:#fff;color:var(--ink)}
 .btn{padding:10px 14px;border-radius:10px;border:none;background:var(--felt);color:var(--cream);font-weight:600}
@@ -166,14 +181,14 @@ ol.normas li .del{background:none;border:none;color:var(--muted);font-size:13px;
 
   <!-- MESA -->
   <section id="tab-mesa" class="panel">
-    <div class="top" style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><div class="label">Cartas que quedan de cada número</div><div class="meta" id="hdrmeta">Ronda <b id="round">1</b> · Quedan <b id="left">40</b> de 40</div></div>
+    <div class="top" style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><div class="label">Cartas que quedan</div><div class="meta" id="hdrmeta">Ronda <b id="round">1</b> · <b id="left">40</b>/40</div></div>
     <div class="tally" id="tally" aria-label="Cartas que quedan de cada número"></div>
     <div class="turn" id="turnbox">
-      <div><div class="label">Le toca a</div><strong id="turnname">—</strong></div>
+      <div class="label">Le toca a</div><strong id="turnname">—</strong>
       <button class="skip" id="skip">Saltar turno</button>
     </div>
     <div class="stage">
-      <div class="card back" id="card" role="button" tabindex="0"></div>
+      <div class="cardbox"><div class="card back" id="card" role="button" tabindex="0"></div></div>
       <p class="hint" id="draw">Toca la carta para sacar</p>
     </div>
     <div id="rulebox"></div>
@@ -190,7 +205,7 @@ ol.normas li .del{background:none;border:none;color:var(--muted);font-size:13px;
       <div class="holder" id="h-puta"></div>
     </div>
     <div class="box">
-      <div class="label">7 · Gnomos en la cabeza</div>
+      <div class="label">7 · Gnomos en el vaso</div>
       <div class="chips" id="gnomos"></div>
     </div>
     <div class="box">
@@ -237,16 +252,16 @@ const RULES = {
     m:["Reparte un trago a cualquier jugador de la mesa."]},
  2:{t:"Dos tragos",s:"Reparte dos tragos como quieras: los dos a la misma persona, cada uno a una persona diferente o bébetelos tú.",
     m:["Reparte dos tragos como prefieras.","Puedes dárselos los dos a una misma persona, dar cada trago a una persona diferente o bebértelos tú."]},
- 3:{t:"Tres tragos",s:"Reparte tres tragos como quieras: todos a la misma persona, cada uno a una persona diferente, mezclarlo o bébetelos tú.",
-    m:["Reparte tres tragos como prefieras.","Puedes dárselos todos a una misma persona, dar cada trago a una persona diferente, combinarlo como quieras (por ejemplo, dos a alguien y uno a otra persona) o bebértelos tú."]},
+ 3:{t:"Tres tragos",s:"Reparte tres tragos como quieras: todos a la misma persona, cada uno a una persona diferente o bébetelos tú.",
+    m:["Reparte tres tragos como prefieras.","Puedes dárselos todos a una misma persona, dar cada trago a una persona diferente o bebértelos tú."]},
  4:{t:"Gesto",tag:"Poder",s:"Ahora tienes el poder del gesto. Cuando te pongas el dedo en la barbilla, todos deben imitarte. El último bebe un trago, y quien no lo haga en 10 segundos también bebe.",
     m:["Te quedas con el poder del gesto.","Cuando quieras, ponte el dedo en la barbilla sin avisar: todos los demás tienen que imitarte. El último en hacerlo bebe un trago, y cualquiera que no lo haga en 10 segundos también bebe.","Cuando otro jugador saque un 4, te quita el poder y pasa a ser suyo."]},
  5:{t:"Norma",tag:"Dura toda la partida",s:"Inventa una norma. Dura toda la partida. También puedes usarla para cambiar o eliminar una norma anterior.",
-    m:["Inventa una norma que todos tendrán que cumplir durante el resto de la partida.","Tu norma también puede modificar una norma anterior, eliminarla o añadirle algo.","Solo puede escribir la norma quien ha sacado el 5, y solo en ese momento: en cuanto se saca la siguiente carta, ya no se puede."]},
+    m:["Inventa una norma que todos tendrán que cumplir durante el resto de la partida.","Tu norma también puede modificar una norma anterior, eliminarla o añadirle algo."]},
  6:{t:"Cascada",s:"Empieza a beber de tu vaso. Todos tienen que beber a la vez que tú hasta que pares.",
     m:["Empieza a beber de tu vaso y todos los demás tienen que beber contigo.","Nadie puede parar hasta que tú pares."]},
- 7:{t:"Gnomo",tag:"Dura toda la partida",s:"Ponte un trozo de papel (o lo que tengas a mano) en la cabeza. Cada vez que bebas, déjalo en la mesa y vuelve a ponértelo. Si se te olvida y alguien grita «¡Gnomo!», bebes un trago.",
-    m:["Ponte encima de la cabeza un trozo de papel o cualquier cosa que tengas a mano, y llévalo toda la partida.","Cada vez que vayas a beber tienes que quitártelo, dejarlo sobre la mesa y volver a ponértelo después. No vale quedártelo en la mano.","Si se te olvida y alguien se da cuenta, puede gritar «¡Gnomo!» y tendrás que beber un trago. Después vuelves a ponértelo y sigue la ronda."]},
+ 7:{t:"Gnomo",tag:"Dura toda la partida",s:"Pon un trozo de papel (o lo que tengas a mano) encima de tu vaso. Cada vez que bebas, déjalo en la mesa y vuelve a ponerlo. Si se te olvida y alguien grita «¡Gnomo!», bebes un trago.",
+    m:["Pon encima de tu vaso un trozo de papel o cualquier cosa que tengas a mano, y déjalo ahí toda la partida.","Cada vez que vayas a beber tienes que quitarlo, dejarlo sobre la mesa y volver a ponerlo encima del vaso después. No vale quedártelo en la mano.","Si se te olvida y alguien se da cuenta, puede gritar «¡Gnomo!» y tendrás que beber un trago. Después vuelves a ponerlo y sigue la ronda."]},
  8:{t:"Ir a mear",tag:"Pase",s:"Te ganas un pase para ir al baño. Sin esta carta nadie puede ir, salvo que beba tres tragos largos antes de levantarse.",
     m:["Te ganas un pase para ir al baño. Sin esta carta no puedes ir.","Si es urgente y no tienes la carta, puedes ir igualmente, pero antes tienes que beber tres tragos largos."]},
  9:{t:"Puta",tag:"Poder",s:"Ahora tienes este poder. Cuando alguien te responda a una pregunta o te dé algo que le pidas, debe terminar diciendo «cállate, puta». Si no lo dice, le mandas beber un trago.",
@@ -285,13 +300,12 @@ function renderRule(){
   if(!S.last){box.innerHTML="";return}
   const n=S.last.c.n,r=RULES[n],who=esc(S.last.who);
   let extra="";
-  if(n===4)extra=`<div class="note">${who} tiene ahora el poder del gesto${S.last.prev&&S.last.prev!==S.last.who?` (se lo quita a ${esc(S.last.prev)})`:""}.</div>`;
-  if(n===9)extra=`<div class="note">${who} tiene ahora el poder${S.last.prev&&S.last.prev!==S.last.who?` (se lo quita a ${esc(S.last.prev)})`:""}.</div>`;
-  if(n===7)extra=`<div class="note">${who} lleva ahora un gnomo (${S.gnomos.filter(g=>g===S.last.who).length} en total).</div>`;
+  if(n===4&&S.last.prev&&S.last.prev!==S.last.who)extra=`<div class="note">${who} le quita el poder del gesto a ${esc(S.last.prev)}.</div>`;
+  if(n===9&&S.last.prev&&S.last.prev!==S.last.who)extra=`<div class="note">${who} le quita el poder a ${esc(S.last.prev)}.</div>`;
+  if(n===7)extra=`<div class="note">${who} tiene ahora un gnomo en el vaso (${S.gnomos.filter(g=>g===S.last.who).length} en total).</div>`;
   if(n===8)extra=`<div class="note">${who} tiene ${S.pases[S.last.who]||0} pase(s) para mear. Úsalo desde «Poderes y normas».</div>`;
   if(n===5)extra=S.last.normaDone?`<div class="note">Norma apuntada. La tienes en «Poderes y normas».</div>`:
-    `<div class="note">Solo ${who} puede escribir, y solo ahora: en cuanto se saque la siguiente carta, se cierra.</div>`+
-    (S.normas.length?`<ol style="margin:0;padding-left:22px">${S.normas.map((t,i)=>`<li>${esc(t)} <button class="btn ghost" style="padding:2px 8px;font-size:13px" data-norma="${i}">eliminar</button></li>`).join("")}</ol>`:"")+
+    (S.normas.length?`<ol style="margin:0;padding-left:22px;max-height:5.6em;overflow-y:auto">${S.normas.map((t,i)=>`<li>${esc(t)} <button class="btn ghost" style="padding:2px 8px;font-size:13px" data-norma="${i}">eliminar</button></li>`).join("")}</ol>`:"")+
     `<div class="row"><input id="ruleNorma" placeholder="Escribe la norma de ${who}"><button class="btn" id="ruleNormaBtn">Apuntar</button></div>`;
   box.innerHTML=`<div class="rule"><div class="head"><span class="num">${n}</span><div><div class="label" style="color:#7a7060">Carta de ${who}</div><h3>${r.t}</h3></div></div><p>${r.s}</p>${extra}</div>`;
   if(n===5&&!S.last.normaDone){
@@ -302,10 +316,8 @@ function renderRule(){
 function renderTurn(){
   $("turnname").textContent=S.last?S.last.who:cur();
   const empty=!S.deck.length, d=$("draw");
-  d.textContent=empty?"Toca la carta para barajar de nuevo":"Toca la carta para sacar";
+  d.textContent=empty?"Se acabó la baraja · toca la carta para barajar":"Toca la carta para sacar";
   $("skip").hidden=true;
-  if(empty&&!$("endnote")){const e=document.createElement("div");e.id="endnote";e.className="endbox";e.innerHTML=`<h2>Se acabó la baraja</h2><p style="margin:0;color:var(--muted)">Barajad y empezad la ronda ${S.round+1}. Las normas, gnomos y poderes siguen.</p>`;$("rulebox").after(e)}
-  if(!empty&&$("endnote"))$("endnote").remove();
 }
 function renderPowers(){
   $("h-gesto").className="holder"+(S.gesto?"":" none");$("h-gesto").textContent=S.gesto||"Nadie todavía. Lo consigue quien saque un 4.";
@@ -332,6 +344,7 @@ function renderSetup(){
 }
 function showScreens(){
   const st=S.started;
+  document.body.classList.toggle("game",st&&tab==="mesa");
   if(!st&&tab==="poderes")tab="mesa";
   $("setup").hidden=st||tab!=="mesa";
   ["mesa","poderes","manual"].forEach(t=>$("tab-"+t).hidden=t!==tab||(t==="mesa"&&!st));
