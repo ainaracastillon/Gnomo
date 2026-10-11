@@ -259,8 +259,9 @@ let S;
 function fresh(){return{started:false,players:[],turn:0,round:1,deck:shuffle(newDeck()),last:null,gesto:null,puta:null,gnomos:[],pases:{},normas:[]}}
 function newDeck(){const d=[];for(const s of Object.keys(SUITS))for(let n=1;n<=10;n++)d.push({n,s});return d}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
-function load(){try{const r=localStorage.getItem(KEY);if(r){S=JSON.parse(r);if(S.started===undefined)S.started=true;if(S.players.length)setupNames=[...S.players];return}}catch(e){}S=fresh()}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+try{localStorage.removeItem(KEY)}catch(e){}
+function load(){try{const r=sessionStorage.getItem(KEY);if(r){S=JSON.parse(r);if(S.started===undefined)S.started=true;if(S.players.length)setupNames=[...S.players];return}}catch(e){}S=fresh()}
+function save(){try{sessionStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const $=id=>document.getElementById(id);
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const cur=()=>S.players.length?S.players[S.turn%S.players.length]:"Jugador";
