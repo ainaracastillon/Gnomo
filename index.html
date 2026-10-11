@@ -26,8 +26,15 @@ body{background:radial-gradient(120% 80% at 50% 0%,var(--felt-3),var(--felt) 55%
 button,input{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-.app{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:14px 96px;display:flex;flex-direction:column;gap:16px}
+.app{max-width:560px;margin:0 auto;padding-inline:16px;padding-block:14px 40px;display:flex;flex-direction:column;gap:16px}
 .logo{width:44px;height:44px;flex:none}
+.menuwrap{position:relative}
+.menubtn{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.2);display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px}
+.menubtn span{width:18px;height:2px;border-radius:2px;background:var(--cream)}
+.menu{position:absolute;right:0;top:52px;z-index:10;min-width:200px;background:var(--felt-2);border:1px solid var(--line);border-radius:12px;padding:6px;display:flex;flex-direction:column;box-shadow:0 12px 28px rgba(0,0,0,.4)}
+.menu button{background:none;border:none;text-align:left;padding:12px 14px;border-radius:8px;font-weight:600;font-size:15px}
+.menu button[aria-current="true"]{color:var(--gold);background:rgba(246,239,220,.08)}
+.back{align-self:flex-start;background:none;border:none;color:var(--gold);font-weight:600;padding:4px 0}
 header{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 h1{font-family:var(--display);font-weight:400;font-size:34px;line-height:1;margin:0;letter-spacing:.5px;color:var(--gold)}
 .meta{font-size:13px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
@@ -110,10 +117,6 @@ ol.normas li .del{background:none;border:none;color:var(--muted);font-size:13px;
 .mrule div{min-width:0}
 
 /* tabs */
-nav{position:fixed;left:0;right:0;bottom:0;padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px));background:var(--felt-2);border-top:1px solid var(--line);display:flex;justify-content:center}
-nav .in{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:100%;max-width:560px}
-nav button{background:none;border:none;border-radius:10px;padding:10px 4px;font-weight:600;color:var(--muted);font-size:14px}
-nav button[aria-selected="true"]{background:rgba(246,239,220,.1);color:var(--gold)}
 
 .endbox{text-align:center;background:rgba(0,0,0,.25);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;align-items:center}
 .reset{background:none;border:none;color:var(--muted);text-decoration:underline;font-size:13px;align-self:center}
@@ -137,8 +140,16 @@ nav button[aria-selected="true"]{background:rgba(246,239,220,.1);color:var(--gol
       </svg>
       <h1>Gnomo</h1>
     </div>
-    <div class="meta" id="hdrmeta">Ronda <b id="round">1</b> · Quedan <b id="left">40</b> de 40</div>
+    <div class="menuwrap">
+      <button class="menubtn" id="menuBtn" aria-haspopup="true" aria-expanded="false" aria-label="Menú"><span></span><span></span><span></span></button>
+      <div class="menu" id="menu" role="menu" hidden>
+        <button role="menuitem" data-tab="mesa">Mesa</button>
+        <button role="menuitem" data-tab="poderes" id="menuPoderes">Poderes y normas</button>
+        <button role="menuitem" data-tab="manual">Manual de reglas</button>
+      </div>
+    </div>
   </header>
+  <button class="back" id="backBtn" hidden>← Volver a la mesa</button>
 
   <!-- NUEVA PARTIDA -->
   <section id="setup" class="panel" hidden>
@@ -154,7 +165,7 @@ nav button[aria-selected="true"]{background:rgba(246,239,220,.1);color:var(--gol
 
   <!-- MESA -->
   <section id="tab-mesa" class="panel">
-    <div class="label">Cartas que quedan de cada número</div>
+    <div class="top" style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap"><div class="label">Cartas que quedan de cada número</div><div class="meta" id="hdrmeta">Ronda <b id="round">1</b> · Quedan <b id="left">40</b> de 40</div></div>
     <div class="tally" id="tally" aria-label="Cartas que quedan de cada número"></div>
     <div class="turn" id="turnbox">
       <div><div class="label">Le toca a</div><strong id="turnname">—</strong></div>
@@ -211,11 +222,6 @@ nav button[aria-selected="true"]{background:rgba(246,239,220,.1);color:var(--gol
   </section>
 </div>
 
-<nav><div class="in" role="tablist">
-  <button role="tab" data-tab="mesa" aria-selected="true">Mesa</button>
-  <button role="tab" data-tab="poderes" aria-selected="false">Poderes y normas</button>
-  <button role="tab" data-tab="manual" aria-selected="false">Manual</button>
-</div></nav>
 
 <script>
 const SUITS = {
@@ -324,10 +330,21 @@ function renderSetup(){
 }
 function showScreens(){
   const st=S.started;
-  $("setup").hidden=st;document.querySelector("nav").hidden=!st;$("hdrmeta").hidden=!st;
-  ["mesa","poderes","manual"].forEach(t=>$("tab-"+t).hidden=!st||t!==tab);
-  document.querySelectorAll("nav button").forEach(x=>x.setAttribute("aria-selected",x.dataset.tab===tab));
+  if(!st&&tab==="poderes")tab="mesa";
+  $("setup").hidden=st||tab!=="mesa";
+  ["mesa","poderes","manual"].forEach(t=>$("tab-"+t).hidden=t!==tab||(t==="mesa"&&!st));
+  $("menuPoderes").hidden=!st;
+  $("backBtn").hidden=tab==="mesa";
+  $("backBtn").textContent=st?"← Volver a la mesa":"← Volver";
+  document.querySelectorAll("#menu button").forEach(x=>x.setAttribute("aria-current",x.dataset.tab===tab));
 }
+function setMenu(open){$("menu").hidden=!open;$("menuBtn").setAttribute("aria-expanded",open)}
+$("menuBtn").onclick=e=>{e.stopPropagation();setMenu($("menu").hidden)};
+document.addEventListener("click",e=>{if(!$("menu").hidden&&!e.target.closest(".menuwrap"))setMenu(false)});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")setMenu(false)});
+function goTab(t){tab=t;setMenu(false);showScreens();window.scrollTo(0,0)}
+document.querySelectorAll("#menu button").forEach(b=>b.onclick=()=>goTab(b.dataset.tab));
+$("backBtn").onclick=()=>goTab("mesa");
 $("setupList").addEventListener("input",e=>{if(e.target.dataset.sp!==undefined)setupNames[+e.target.dataset.sp]=e.target.value});
 $("setupList").addEventListener("click",e=>{if(e.target.dataset.sprm!==undefined){setupNames.splice(+e.target.dataset.sprm,1);renderSetup()}});
 $("setupAdd").onclick=()=>{setupNames.push("");renderSetup();$("sp"+(setupNames.length-1)).focus()};
@@ -360,10 +377,6 @@ document.addEventListener("click",e=>{
 });
 function addPlayer(){const v=$("playerIn").value.trim();if(!v)return;S.players.push(v);$("playerIn").value="";save();renderPowers();renderTurn()}
 $("playerAdd").onclick=addPlayer;$("playerIn").onkeydown=e=>{if(e.key==="Enter")addPlayer()};
-document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
-  tab=b.dataset.tab;showScreens();
-  window.scrollTo(0,0);
-});
 try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{})}catch(e){}
 load();renderManual();all();
 </script>
