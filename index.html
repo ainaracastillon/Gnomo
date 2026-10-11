@@ -141,7 +141,8 @@ ol.normas li .del{background:none;border:none;color:var(--muted);font-size:13px;
 .fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:35;border:none;border-radius:999px;padding:14px 20px;background:var(--gold);color:var(--ink);font-weight:700;font-size:15px;box-shadow:0 10px 26px rgba(0,0,0,.45),0 3px 0 #9c7512;animation:noticeIn .3s ease}
 .fab:active{transform:translateY(2px)}
 body.hasfab .app{padding-bottom:96px}
-.joinbox h2{font-size:17px}
+.codein{align-self:stretch;text-align:center;font-family:var(--display);font-size:34px!important;letter-spacing:.25em;text-transform:uppercase;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.3);color:var(--gold)}
+.codein::placeholder{color:rgba(246,239,220,.2)}
 .live{margin-left:auto;font-size:12px;font-weight:600;color:var(--ink);background:var(--gold);border-radius:999px;padding:2px 9px;white-space:nowrap;align-self:center}
 .live.view{background:rgba(246,239,220,.14);color:var(--cream)}
 .code{font-family:var(--display);font-size:46px;letter-spacing:.18em;color:var(--gold);line-height:1;margin:4px 0 0;padding-left:.18em}
@@ -306,6 +307,28 @@ body.hasnotice .app{padding-bottom:170px}
     </div>
   </div>
 
+  <div class="endov" id="joinov" role="dialog" aria-modal="true" aria-labelledby="joinTitle" hidden>
+    <div class="endcard">
+      <h2 id="joinTitle">Unirme a una partida</h2>
+      <p class="sub" style="margin:0">Escribe el código de 4 letras que te ha pasado el anfitrión. Verás la partida en tu móvil; solo el anfitrión saca las cartas.</p>
+      <input id="joinIn" class="codein" placeholder="GNMK" maxlength="4" autocomplete="off" autocapitalize="characters" enterkeyhint="go" aria-label="Código de la partida">
+      <p class="sub" id="joinErr" style="margin:0;color:#f0a090" hidden></p>
+      <button class="draw" id="joinBtn">Unirme</button>
+      <button class="btn ghost wide" id="joinClose">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="endov" id="keepov" role="dialog" aria-modal="true" aria-labelledby="keepTitle" hidden>
+    <div class="endcard">
+      <h2 id="keepTitle">¿Seguís compartiendo?</h2>
+      <p style="margin:0">La partida anterior se compartía con el código</p>
+      <div class="code" id="keepCode"></div>
+      <p class="sub" style="margin:0">Si seguís con el mismo código, los móviles que ya estaban conectados verán la nueva partida sin hacer nada.</p>
+      <button class="draw" id="keepYes">Seguir con este código</button>
+      <button class="btn ghost wide" id="keepNo">Jugar sin compartir</button>
+    </div>
+  </div>
+
   <!-- EDAD -->
   <section id="agegate" class="agegate" hidden>
     <h2>Solo para mayores de 18 años</h2>
@@ -324,12 +347,7 @@ body.hasnotice .app{padding-bottom:170px}
       <p class="empty" id="setupErr" style="color:#f0a090" hidden></p>
     </div>
     <button class="draw" id="setupGo" style="align-self:center">Empezar partida</button>
-    <div class="box joinbox">
-      <h2>¿Te han pasado un código?</h2>
-      <p class="empty">Únete para seguir en tu móvil la partida de otra persona. Solo el anfitrión saca las cartas.</p>
-      <div class="addrow"><input id="joinIn" placeholder="Código, p. ej. GNMK" maxlength="4" autocomplete="off" autocapitalize="characters" enterkeyhint="go"><button class="btn" id="joinBtn" style="background:var(--gold);color:var(--ink)">Unirme</button></div>
-      <p class="empty" id="joinErr" style="color:#f0a090" hidden></p>
-    </div>
+    <button class="btn ghost wide" id="joinOpen" style="align-self:center">🔑 ¿Te han pasado un código?</button>
     <p class="foot">Solo para mayores de 18 años · <button class="linkbtn" data-go="legal">Aviso legal y privacidad</button></p>
   </section>
 
@@ -615,8 +633,13 @@ $("setupAdd").onclick=()=>{setupNames.push("");renderSetup();$("sp"+(setupNames.
 $("setupGo").onclick=()=>{
   const names=setupNames.map(n=>n.trim()).filter(Boolean);
   if(names.length<2){$("setupErr").textContent="Escribe al menos 2 nombres para empezar.";$("setupErr").hidden=false;return}
-  $("setupErr").hidden=true;intro=names;noticeClosed=false;showScreens();window.scrollTo(0,0);
+  $("setupErr").hidden=true;
+  if(ROOM&&!keepAsked){$("keepCode").textContent=ROOM.code;$("keepov").hidden=false;return}
+  keepAsked=false;intro=names;noticeClosed=false;showScreens();window.scrollTo(0,0);
 };
+let keepAsked=false;
+$("keepYes").onclick=()=>{$("keepov").hidden=true;keepAsked=true;$("setupGo").click()};
+$("keepNo").onclick=async()=>{$("keepov").hidden=true;const r=ROOM;ROOM=null;try{sessionStorage.removeItem("gnomo-room")}catch(e){}clearInterval(pingT);keepAsked=true;$("setupGo").click();try{await api(`/rooms/${r.code}/close`,{method:"POST",headers:{"X-Host-Key":r.hostKey}})}catch(e){}};
 $("manualGo").onclick=()=>{S=fresh();S.players=intro;S.started=true;intro=null;tab="mesa";save();all();window.scrollTo(0,0)};
 function all(anim){showScreens();if(!S.started){renderSetup();return}renderCard(anim);renderRule();renderTurn()}
 
@@ -689,7 +712,7 @@ $("shareClose").onclick=()=>{$("shareov").hidden=true};
 function joinRoom(code){
   code=(code||"").toUpperCase().replace(/[^A-Z]/g,"");
   if(code.length!==4){$("joinErr").textContent="El código tiene 4 letras.";$("joinErr").hidden=false;return}
-  $("joinErr").hidden=true;
+  $("joinErr").hidden=true;$("joinov").hidden=true;
   VIEW={code,ok:false};ROOM=null;S={started:false,players:[],turn:0,last:null,hist:[],deckLeft:40};tab="mesa";
   try{sessionStorage.setItem("gnomo-view",code)}catch(e){}
   $("waitTitle").textContent="Conectando con la partida…";$("waitText").textContent="La primera vez puede tardar hasta un minuto.";
@@ -722,6 +745,8 @@ function connectView(){
   };
 }
 function leaveRoom(){if(es)es.close();clearTimeout(retryT);VIEW=null;try{sessionStorage.removeItem("gnomo-view")}catch(e){}history.replaceState(null,"",location.pathname);load();tab="mesa";all()}
+$("joinOpen").onclick=()=>{$("joinErr").hidden=true;$("joinIn").value="";$("joinov").hidden=false;$("joinIn").focus()};
+$("joinClose").onclick=()=>{$("joinov").hidden=true};
 $("joinBtn").onclick=()=>joinRoom($("joinIn").value);
 $("joinIn").onkeydown=e=>{if(e.key==="Enter")joinRoom($("joinIn").value)};
 $("joinIn").oninput=e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z]/g,"")};
