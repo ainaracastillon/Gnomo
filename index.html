@@ -151,6 +151,20 @@ body.gate .agegate{margin-block:auto}
 .endlogo{width:84px;height:84px}
 .endcard .sub{font-size:13px;color:var(--muted);margin-top:-4px}
 .btn.wide{width:100%;max-width:320px;padding:14px;font-size:16px}
+.endcard.hist{max-height:calc(100dvh - 32px)}
+.hlist{margin:0;padding:0;list-style:none;align-self:stretch;display:flex;flex-direction:column;gap:6px;overflow-y:auto;min-height:0;flex:1 1 auto;text-align:left}
+.hlist details{background:rgba(0,0,0,.22);border-radius:10px}
+.hlist summary{list-style:none;display:flex;align-items:center;gap:10px;padding:8px 10px;cursor:pointer}
+.hlist summary::-webkit-details-marker{display:none}
+.hlist .hn{flex:none;width:30px;height:44px;border-radius:5px;background:#fff;overflow:hidden}
+.hlist .hn svg{width:100%;height:100%;display:block}
+.hlist .ht{flex:1;min-width:0}
+.hlist .ht b{display:block;font-weight:600}
+.hlist .ht small{color:var(--muted);font-size:13px}
+.hlist .hi{flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.hlist details p{margin:0;padding:0 12px 10px 50px;font-size:14px;color:var(--cream)}
+.hlist details[open] summary{padding-bottom:4px}
+.hlist .hsep{text-align:center;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding:6px 0}
 .plist{margin:0;padding:0;list-style:none;align-self:stretch;display:flex;flex-direction:column;gap:6px;max-height:34vh;overflow-y:auto}
 .plist li{display:flex;align-items:center;gap:6px}
 .plist .pn{width:1.6em;flex:none;text-align:right;color:var(--muted);font-variant-numeric:tabular-nums;font-size:14px}
@@ -223,6 +237,7 @@ body.hasnotice .app{padding-bottom:170px}
         <button role="menuitem" data-tab="mesa">Mesa</button>
         <button role="menuitem" data-tab="manual">Manual de reglas</button>
         <button role="menuitem" data-tab="legal">Aviso legal y privacidad</button>
+        <button role="menuitem" id="menuHist">Historial de cartas</button>
         <button role="menuitem" id="menuAdd">Jugadores</button>
         <button role="menuitem" id="menuNew">Nueva partida</button>
       </div>
@@ -251,6 +266,15 @@ body.hasnotice .app{padding-bottom:170px}
       <div class="addrow full"><input id="addIn" placeholder="Nombre del jugador" autocomplete="off" enterkeyhint="done"><button class="btn" id="addBtn" style="background:var(--gold);color:var(--ink)">Añadir</button></div>
       <p class="sub" id="addMsg" style="margin:0" hidden></p>
       <button class="btn ghost wide" id="addClose">Volver a la partida</button>
+    </div>
+  </div>
+
+  <div class="endov" id="histov" role="dialog" aria-modal="true" aria-labelledby="histTitle" hidden>
+    <div class="endcard hist">
+      <h2 id="histTitle">Historial de cartas</h2>
+      <p class="sub" style="margin:0" id="histSub"></p>
+      <ol class="hlist" id="hlist"></ol>
+      <button class="btn ghost wide" id="histClose">Volver a la partida</button>
     </div>
   </div>
 
@@ -321,6 +345,7 @@ body.hasnotice .app{padding-bottom:170px}
     <div class="intro">
       <h2>Cómo se juega</h2>
       <p>Por turnos, cada jugador saca una carta y cumple lo que dice su número. Cuando se acaba la baraja, podéis volver a barajar y seguir jugando con las mismas normas y poderes, o empezar una partida nueva.</p>
+      <p>Si alguien se salta una carta sin querer, en «Historial de cartas» podéis ver todas las que han salido, quién las sacó y su regla.</p>
       <p>Desde «Jugadores», en el menú de la esquina superior derecha, podéis añadir, quitar o cambiar el nombre de cualquier jugador a mitad de partida. Los nuevos entran al final del orden de turnos.</p>
     </div>
     <div id="manualList" class="manual"></div>
@@ -364,7 +389,7 @@ const RULES = {
 
 const KEY="gnomo-v2";
 let S;
-function fresh(){return{started:false,players:[],turn:0,deck:shuffle(newDeck()),last:null}}
+function fresh(){return{started:false,players:[],turn:0,deck:shuffle(newDeck()),last:null,hist:[],shuf:1}}
 function newDeck(){const d=[];for(const s of Object.keys(SUITS))for(let n=1;n<=10;n++)d.push({n,s});return d}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 try{localStorage.removeItem(KEY)}catch(e){}
@@ -463,7 +488,7 @@ function showScreens(){
   if(io&&tab!=="legal"){$("setup").hidden=true;$("tab-mesa").hidden=true;$("tab-manual").hidden=false;$("backBtn").hidden=false;$("backBtn").textContent="← Cambiar jugadores";return}
   $("setup").hidden=st||tab!=="mesa";
   ["mesa","manual","legal"].forEach(t=>$("tab-"+t).hidden=t!==tab||(t==="mesa"&&!st));
-  $("menuNew").hidden=!st;$("menuAdd").hidden=!st;
+  $("menuNew").hidden=!st;$("menuAdd").hidden=!st;$("menuHist").hidden=!st;
   $("backBtn").hidden=tab==="mesa";
   $("backBtn").textContent=st?"← Volver a la mesa":"← Volver";
   document.querySelectorAll("#menu button[data-tab]").forEach(x=>x.setAttribute("aria-current",x.dataset.tab===tab));
@@ -476,7 +501,19 @@ function goTab(t){tab=t;setMenu(false);showScreens();window.scrollTo(0,0)}
 document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){prevTab=tab;goTab(g.dataset.go)}});
 let prevTab="mesa";
 $("endGo").onclick=()=>{$("endov").hidden=true;endGame()};
-$("endMore").onclick=()=>{$("endov").hidden=true;S.deck=shuffle(newDeck());S.last=null;save();all()};
+$("endMore").onclick=()=>{$("endov").hidden=true;S.deck=shuffle(newDeck());S.last=null;S.shuf=(S.shuf||1)+1;save();all()};
+function renderHist(){
+  const h=S.hist||[];
+  $("histSub").textContent=h.length?`${h.length} ${h.length===1?"carta sacada":"cartas sacadas"}. La más reciente, arriba. Toca una para ver su regla.`:"Todavía no se ha sacado ninguna carta.";
+  let html="",prevB=null;
+  for(let i=h.length-1;i>=0;i--){const e=h[i],r=RULES[e.n];
+    if(prevB!==null&&e.b!==prevB)html+=`<li class="hsep">Se volvió a barajar</li>`;
+    prevB=e.b;
+    html+=`<li><details${i===h.length-1?" open":""}><summary><span class="hn">${cardSVG(e.n,e.s)}</span><span class="ht"><b>${e.n} · ${r.t} <span class="emo">${EMO[e.n]}</span></b><small>${esc(e.who)}</small></span><span class="hi">#${i+1}</span></summary><p>${r.s}</p></details></li>`;}
+  $("hlist").innerHTML=html;
+}
+$("menuHist").onclick=()=>{setMenu(false);renderHist();$("histov").hidden=false;$("hlist").scrollTop=0};
+$("histClose").onclick=()=>{$("histov").hidden=true};
 let armedDel=-1;
 function renderPlist(){
   const one=S.players.length<=2;
@@ -518,7 +555,7 @@ $("card").onclick=()=>drawCard();
 function drawCard(){
   if(!S.deck.length){$("endov").hidden=false;$("endMore").focus();return}
   const c=S.deck.pop(),who=cur();
-  S.last={c,who};S.turn=(S.turn+1)%S.players.length;
+  S.last={c,who};(S.hist=S.hist||[]).push({n:c.n,s:c.s,who,b:S.shuf||1});S.turn=(S.turn+1)%S.players.length;
   save();all(true);burst(EMO[c.n]);
 }
 function burst(e){const d=document.createElement("div");d.className="burst";const k=e.startsWith("<")?1:[...e].filter(ch=>ch.codePointAt(0)>0x2000).length;d.style.setProperty("--k",k>2?.55:k>1?.75:1);d.setAttribute("aria-hidden","true");d.innerHTML=`<span>${e}</span>`;document.body.appendChild(d);setTimeout(()=>d.remove(),1000)}
