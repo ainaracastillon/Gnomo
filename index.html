@@ -353,6 +353,7 @@ body.hasnotice .app{padding-bottom:170px}
     <div id="manualList" class="manual"></div>
     <button class="draw" id="manualGo" style="align-self:center" hidden>Empezar partida</button>
     <div class="intro"><p>Bebed con cabeza: cualquiera puede pasar de un trago o cambiar a agua cuando quiera, y nadie conduce después.</p></div>
+      <p class="foot">Juega con responsabilidad · +18 · <button class="linkbtn" data-go="legal">Aviso legal y privacidad</button></p>
   </section>
 </div>
 
@@ -540,7 +541,7 @@ $("ageYes").onclick=()=>{window.__adult=true;try{sessionStorage.setItem("gnomo-1
 document.querySelectorAll("#menu button[data-tab]").forEach(b=>b.onclick=()=>goTab(b.dataset.tab));
 function endGame(){setupNames=S.players.length?[...S.players]:["",""];S=fresh();tab="mesa";save();setMenu(false);all()}
 $("menuNew").onclick=()=>{if(!newArmed){newArmed=true;$("menuNew").textContent="¿Seguro? Toca otra vez";return}endGame()};
-$("backBtn").onclick=()=>{if(tab==="legal"&&intro){tab="mesa";showScreens();window.scrollTo(0,0);return}if(intro){intro=null;showScreens();window.scrollTo(0,0);return}goTab("mesa")};
+$("backBtn").onclick=()=>{if(tab==="legal"&&!intro&&prevTab==="manual"){goTab("manual");return}if(tab==="legal"&&intro){tab="mesa";showScreens();window.scrollTo(0,0);return}if(intro){intro=null;showScreens();window.scrollTo(0,0);return}goTab("mesa")};
 $("setupList").addEventListener("input",e=>{if(e.target.dataset.sp!==undefined)setupNames[+e.target.dataset.sp]=e.target.value});
 $("setupList").addEventListener("click",e=>{if(e.target.dataset.sprm!==undefined){setupNames.splice(+e.target.dataset.sprm,1);renderSetup()}});
 $("setupAdd").onclick=()=>{setupNames.push("");renderSetup();$("sp"+(setupNames.length-1)).focus()};
