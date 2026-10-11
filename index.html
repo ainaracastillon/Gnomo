@@ -137,6 +137,9 @@ ol.normas li .del{background:none;border:none;color:var(--muted);font-size:13px;
 /* tabs */
 
 .endbox{text-align:center;background:rgba(0,0,0,.25);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.notice{background:var(--gold);color:var(--ink);border-radius:14px;padding:14px 16px;line-height:1.45}
+.mini{display:inline-flex;flex-direction:column;gap:2px;vertical-align:middle;border:1px solid var(--ink);border-radius:5px;padding:3px 4px;margin-inline:2px}
+.mini i{display:block;width:10px;height:1.5px;background:var(--ink)}
 .reset{background:none;border:none;color:var(--muted);text-decoration:underline;font-size:13px;align-self:center}
 .confirm{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;align-items:center;font-size:14px}
 </style>
@@ -213,11 +216,13 @@ ol.normas li .del{background:none;border:none;color:var(--muted);font-size:13px;
 
   <!-- MANUAL -->
   <section id="tab-manual" class="manual" hidden>
+    <div class="notice" id="manualNotice" hidden><b>Lee las reglas antes de empezar.</b> Durante la partida puedes volver a verlas cuando quieras desde el menú <span class="mini" aria-hidden="true"><i></i><i></i><i></i></span> de la esquina superior derecha.</div>
     <div class="intro">
       <h2>Cómo se juega</h2>
       <p>Por turnos, cada jugador saca una carta y cumple lo que dice su número. La partida dura hasta que se acaba la baraja; entonces termina y se puede empezar otra.</p>
     </div>
     <div id="manualList" class="manual"></div>
+    <button class="draw" id="manualGo" style="align-self:center" hidden>Empezar partida</button>
     <div class="intro"><p>Bebed con cabeza: cualquiera puede pasar de un trago o cambiar a agua cuando quiera, y nadie conduce después.</p></div>
   </section>
 </div>
@@ -339,13 +344,16 @@ function renderTurn(){
 function renderManual(){
   $("manualList").innerHTML=Object.entries(RULES).map(([n,r])=>`<article class="mrule"><span class="num">${n}</span><div>${r.tag?`<span class="tag">${r.tag}</span>`:""}<h3>${r.t}</h3>${r.m.map(p=>`<p>${p}</p>`).join("")}</div></article>`).join("");
 }
-let setupNames=["",""],tab="mesa",newArmed=false;
+let setupNames=["",""],tab="mesa",newArmed=false,intro=null;
 function renderSetup(){
   $("setupList").innerHTML=setupNames.map((n,i)=>`<div class="addrow"><input id="sp${i}" data-sp="${i}" value="${esc(n)}" placeholder="Jugador ${i+1}" autocomplete="off">${setupNames.length>2?`<button class="btn ghost" data-sprm="${i}" aria-label="Quitar jugador ${i+1}">×</button>`:""}</div>`).join("");
 }
 function showScreens(){
   const st=S.started;
   document.body.classList.toggle("game",st&&tab==="mesa");
+  const io=!!intro;
+  $("manualNotice").hidden=!io;$("manualGo").hidden=!io;$("menuBtn").parentElement.hidden=io;
+  if(io){$("setup").hidden=true;$("tab-mesa").hidden=true;$("tab-manual").hidden=false;$("backBtn").hidden=false;$("backBtn").textContent="← Cambiar jugadores";return}
   $("setup").hidden=st||tab!=="mesa";
   ["mesa","manual"].forEach(t=>$("tab-"+t).hidden=t!==tab||(t==="mesa"&&!st));
   $("menuNew").hidden=!st;
@@ -361,15 +369,16 @@ function goTab(t){tab=t;setMenu(false);showScreens();window.scrollTo(0,0)}
 document.querySelectorAll("#menu button[data-tab]").forEach(b=>b.onclick=()=>goTab(b.dataset.tab));
 function endGame(){setupNames=S.players.length?[...S.players]:["",""];S=fresh();tab="mesa";save();setMenu(false);all()}
 $("menuNew").onclick=()=>{if(!newArmed){newArmed=true;$("menuNew").textContent="¿Seguro? Toca otra vez";return}endGame()};
-$("backBtn").onclick=()=>goTab("mesa");
+$("backBtn").onclick=()=>{if(intro){intro=null;showScreens();window.scrollTo(0,0);return}goTab("mesa")};
 $("setupList").addEventListener("input",e=>{if(e.target.dataset.sp!==undefined)setupNames[+e.target.dataset.sp]=e.target.value});
 $("setupList").addEventListener("click",e=>{if(e.target.dataset.sprm!==undefined){setupNames.splice(+e.target.dataset.sprm,1);renderSetup()}});
 $("setupAdd").onclick=()=>{setupNames.push("");renderSetup();$("sp"+(setupNames.length-1)).focus()};
 $("setupGo").onclick=()=>{
   const names=setupNames.map(n=>n.trim()).filter(Boolean);
   if(names.length<2){$("setupErr").textContent="Escribe al menos 2 nombres para empezar.";$("setupErr").hidden=false;return}
-  $("setupErr").hidden=true;S=fresh();S.players=names;S.started=true;tab="mesa";save();all();
+  $("setupErr").hidden=true;intro=names;showScreens();window.scrollTo(0,0);
 };
+$("manualGo").onclick=()=>{S=fresh();S.players=intro;S.started=true;intro=null;tab="mesa";save();all();window.scrollTo(0,0)};
 function all(anim){showScreens();if(!S.started){renderSetup();return}renderCard(anim);renderRule();renderTurn()}
 
 $("card").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();drawCard()}};
