@@ -149,6 +149,10 @@ body.gate .agegate{margin-block:auto}
 .endcard h2{font-size:26px;color:var(--gold)}
 .endcard p{margin:0;color:var(--cream);max-width:32ch}
 .endlogo{width:84px;height:84px}
+.endcard .sub{font-size:13px;color:var(--muted);margin-top:-4px}
+.btn.wide{width:100%;max-width:320px;padding:14px;font-size:16px}
+.plist{margin:0;padding-left:22px;text-align:left;align-self:stretch;display:flex;flex-direction:column;gap:2px;max-height:30vh;overflow-y:auto}
+.addrow.full{align-self:stretch}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes pop{from{transform:scale(.85);opacity:0}to{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){.endov,.endcard{animation:none}}
@@ -213,6 +217,7 @@ body.hasnotice .app{padding-bottom:170px}
         <button role="menuitem" data-tab="mesa">Mesa</button>
         <button role="menuitem" data-tab="manual">Manual de reglas</button>
         <button role="menuitem" data-tab="legal">Aviso legal y privacidad</button>
+        <button role="menuitem" id="menuAdd">Añadir jugador</button>
         <button role="menuitem" id="menuNew">Nueva partida</button>
       </div>
     </div>
@@ -223,9 +228,23 @@ body.hasnotice .app{padding-bottom:170px}
   <div class="endov" id="endov" role="dialog" aria-modal="true" aria-labelledby="endTitle" hidden>
     <div class="endcard">
       <img class="endlogo" id="endLogo" alt="">
-      <h2 id="endTitle">¡Partida terminada!</h2>
-      <p>Se han sacado las 40 cartas. Las normas, los gnomos y los poderes de esta partida se acaban aquí.</p>
-      <button class="draw" id="endGo">Volver a empezar</button>
+      <h2 id="endTitle">¡Se acabó la baraja!</h2>
+      <p>Se han sacado las 40 cartas. ¿Qué queréis hacer?</p>
+      <button class="draw" id="endMore">Seguir jugando</button>
+      <p class="sub">Se barajan otra vez las cartas y siguen las mismas normas, gnomos y poderes.</p>
+      <button class="btn ghost wide" id="endGo">Nueva partida</button>
+      <p class="sub">Todo empieza de cero.</p>
+    </div>
+  </div>
+
+  <div class="endov" id="addov" role="dialog" aria-modal="true" aria-labelledby="addTitle" hidden>
+    <div class="endcard">
+      <h2 id="addTitle">Añadir jugador</h2>
+      <p class="sub" style="margin:0">Entra al final del orden de turnos.</p>
+      <ol class="plist" id="plist"></ol>
+      <div class="addrow full"><input id="addIn" placeholder="Nombre del jugador" autocomplete="off" enterkeyhint="done"><button class="btn" id="addBtn" style="background:var(--gold);color:var(--ink)">Añadir</button></div>
+      <p class="sub" id="addMsg" style="margin:0" hidden></p>
+      <button class="btn ghost wide" id="addClose">Volver a la partida</button>
     </div>
   </div>
 
@@ -295,7 +314,8 @@ body.hasnotice .app{padding-bottom:170px}
     <div class="notice" id="manualNotice" role="status" hidden><p><b>Lee las reglas antes de empezar.</b> Durante la partida puedes volver a verlas cuando quieras desde el menú <span class="mini" aria-hidden="true"><i></i><i></i><i></i></span> de la esquina superior derecha.</p><button class="notice-x" id="noticeX" aria-label="Cerrar aviso">×</button></div>
     <div class="intro">
       <h2>Cómo se juega</h2>
-      <p>Por turnos, cada jugador saca una carta y cumple lo que dice su número. La partida dura hasta que se acaba la baraja; entonces termina y se puede empezar otra.</p>
+      <p>Por turnos, cada jugador saca una carta y cumple lo que dice su número. Cuando se acaba la baraja, podéis volver a barajar y seguir jugando con las mismas normas y poderes, o empezar una partida nueva.</p>
+      <p>Si llega alguien a mitad de partida, añadidlo desde el menú de la esquina superior derecha: entra al final del orden de turnos.</p>
     </div>
     <div id="manualList" class="manual"></div>
     <button class="draw" id="manualGo" style="align-self:center" hidden>Empezar partida</button>
@@ -416,7 +436,7 @@ function renderRule(){
 }
 function renderTurn(){
   $("turnname").textContent=S.last?S.last.who:cur();
-  $("draw").textContent=S.deck.length?"Toca la carta para sacar":"Se acabó la baraja · toca la carta para terminar";
+  $("draw").textContent=S.deck.length?"Toca la carta para sacar":"Se acabó la baraja · toca la carta";
 }
 function renderManual(){
   $("manualList").innerHTML=Object.entries(RULES).map(([n,r])=>`<article class="mrule"><span class="num">${n}</span><div>${r.tag?`<span class="tag">${r.tag}</span>`:""}<h3>${r.t}<span class="emo">${EMO[n]}</span></h3>${r.m.map(p=>`<p>${p}</p>`).join("")}</div></article>`).join("");
@@ -437,7 +457,7 @@ function showScreens(){
   if(io&&tab!=="legal"){$("setup").hidden=true;$("tab-mesa").hidden=true;$("tab-manual").hidden=false;$("backBtn").hidden=false;$("backBtn").textContent="← Cambiar jugadores";return}
   $("setup").hidden=st||tab!=="mesa";
   ["mesa","manual","legal"].forEach(t=>$("tab-"+t).hidden=t!==tab||(t==="mesa"&&!st));
-  $("menuNew").hidden=!st;
+  $("menuNew").hidden=!st;$("menuAdd").hidden=!st;
   $("backBtn").hidden=tab==="mesa";
   $("backBtn").textContent=st?"← Volver a la mesa":"← Volver";
   document.querySelectorAll("#menu button[data-tab]").forEach(x=>x.setAttribute("aria-current",x.dataset.tab===tab));
@@ -450,6 +470,12 @@ function goTab(t){tab=t;setMenu(false);showScreens();window.scrollTo(0,0)}
 document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){prevTab=tab;goTab(g.dataset.go)}});
 let prevTab="mesa";
 $("endGo").onclick=()=>{$("endov").hidden=true;endGame()};
+$("endMore").onclick=()=>{$("endov").hidden=true;S.deck=shuffle(newDeck());S.last=null;save();all()};
+function renderPlist(){$("plist").innerHTML=S.players.map(p=>`<li>${esc(p)}</li>`).join("")}
+$("menuAdd").onclick=()=>{setMenu(false);renderPlist();$("addMsg").hidden=true;$("addIn").value="";$("addov").hidden=false;$("addIn").focus()};
+function addPlayer(){const v=$("addIn").value.trim();if(!v)return;S.players.push(v);save();renderPlist();$("addIn").value="";$("addMsg").textContent=`${v} se ha unido a la partida.`;$("addMsg").hidden=false;$("addIn").focus()}
+$("addBtn").onclick=addPlayer;$("addIn").onkeydown=e=>{if(e.key==="Enter")addPlayer()};
+$("addClose").onclick=()=>{$("addov").hidden=true};
 $("noticeX").onclick=()=>{noticeClosed=true;$("manualNotice").hidden=true;document.body.classList.remove("hasnotice")};
 $("ageYes").onclick=()=>{window.__adult=true;try{sessionStorage.setItem("gnomo-18","1")}catch(e){}showScreens();window.scrollTo(0,0)};
 document.querySelectorAll("#menu button[data-tab]").forEach(b=>b.onclick=()=>goTab(b.dataset.tab));
@@ -470,7 +496,7 @@ function all(anim){showScreens();if(!S.started){renderSetup();return}renderCard(
 $("card").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();drawCard()}};
 $("card").onclick=()=>drawCard();
 function drawCard(){
-  if(!S.deck.length){$("endov").hidden=false;$("endGo").focus();return}
+  if(!S.deck.length){$("endov").hidden=false;$("endMore").focus();return}
   const c=S.deck.pop(),who=cur();
   S.last={c,who};S.turn=(S.turn+1)%S.players.length;
   save();all(true);burst(EMO[c.n]);
