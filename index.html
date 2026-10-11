@@ -169,7 +169,9 @@ ol.normas li .del{background:none;border:none;color:var(--muted);font-size:13px;
 .mrule .num{font-family:var(--display);font-size:30px;color:var(--red);line-height:1}
 .mrule h3{font-family:var(--display);font-weight:400;font-size:19px;margin:0 0 4px}
 .mrule p{margin:0 0 6px}.mrule p:last-child{margin:0}
-.mrule .tag{display:inline-block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--felt);background:#e3d7b3;border-radius:6px;padding:2px 7px;margin-bottom:6px}
+.mrule h3{display:flex;flex-wrap:wrap;align-items:center;column-gap:10px;row-gap:4px}
+.mrule h3 .emo{margin-left:-4px}
+.mrule .tag{display:inline-block;font-family:var(--body);font-size:11px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--felt);background:#e3d7b3;border-radius:6px;padding:2px 7px;white-space:nowrap}
 .mrule div{min-width:0}
 
 /* tabs */
@@ -584,7 +586,7 @@ function renderTurn(){
   else t.hidden=true;
 }
 function renderManual(){
-  $("manualList").innerHTML=Object.entries(RULES).map(([n,r])=>`<article class="mrule"><span class="num">${n}</span><div>${r.tag?`<span class="tag">${r.tag}</span>`:""}<h3>${r.t}<span class="emo">${EMO[n]}</span></h3>${r.m.map(p=>`<p>${p}</p>`).join("")}</div></article>`).join("");
+  $("manualList").innerHTML=Object.entries(RULES).map(([n,r])=>`<article class="mrule"><span class="num">${n}</span><div><h3>${r.t}<span class="emo">${EMO[n]}</span>${r.tag?`<span class="tag">${r.tag}</span>`:""}</h3>${r.m.map(p=>`<p>${p}</p>`).join("")}</div></article>`).join("");
 }
 let noticeClosed=false,setupNames=["",""],tab="mesa",newArmed=false,intro=null;
 function renderSetup(){
