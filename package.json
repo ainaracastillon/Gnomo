@@ -1,0 +1,14 @@
+{
+  "name": "gnomo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Gnomo: juego de cartas con baraja española. Servidor de salas para seguir la partida en varios móviles.",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "UNLICENSED"
+}

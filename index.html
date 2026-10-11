@@ -141,6 +141,16 @@ ol.normas li .del{background:none;border:none;color:var(--muted);font-size:13px;
 .fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:35;border:none;border-radius:999px;padding:14px 20px;background:var(--gold);color:var(--ink);font-weight:700;font-size:15px;box-shadow:0 10px 26px rgba(0,0,0,.45),0 3px 0 #9c7512;animation:noticeIn .3s ease}
 .fab:active{transform:translateY(2px)}
 body.hasfab .app{padding-bottom:96px}
+.joinbox h2{font-size:17px}
+.live{margin-left:auto;font-size:12px;font-weight:600;color:var(--ink);background:var(--gold);border-radius:999px;padding:2px 9px;white-space:nowrap;align-self:center}
+.live.view{background:rgba(246,239,220,.14);color:var(--cream)}
+.code{font-family:var(--display);font-size:46px;letter-spacing:.18em;color:var(--gold);line-height:1;margin:4px 0 0;padding-left:.18em}
+.sharelink{font-size:13px;color:var(--cream);background:rgba(0,0,0,.25);border-radius:10px;padding:8px 10px;word-break:break-all;user-select:all;align-self:stretch}
+.sharebtns{display:flex;gap:8px;align-self:stretch}
+.sharebtns .btn{flex:1;padding:12px;font-size:15px}
+#shareBody{display:flex;flex-direction:column;align-items:center;gap:10px;align-self:stretch}
+body.viewer .card{cursor:default}
+body.viewer .card:active{transform:none}
 .gamefoot{flex:none;font-size:12px;margin-top:-2px}
 .gamefoot .linkbtn{font-size:12px}
 .foot{margin:0;text-align:center;font-size:13px;color:var(--muted)}
@@ -241,9 +251,11 @@ body.hasnotice .app{padding-bottom:170px}
       <div class="menu" id="menu" role="menu" hidden>
         <button role="menuitem" data-tab="mesa">Mesa</button>
         <button role="menuitem" data-tab="manual">Manual de reglas</button>
+        <button role="menuitem" id="menuShare">📲 Compartir partida</button>
         <button role="menuitem" id="menuHist">Historial de cartas</button>
         <button role="menuitem" id="menuAdd">Jugadores</button>
         <button role="menuitem" id="menuNew">Nueva partida</button>
+        <button role="menuitem" id="menuLeave" hidden>Salir de la sala</button>
       </div>
     </div>
   </header>
@@ -284,6 +296,16 @@ body.hasnotice .app{padding-bottom:170px}
     </div>
   </div>
 
+  <div class="endov" id="shareov" role="dialog" aria-modal="true" aria-labelledby="shareTitle" hidden>
+    <div class="endcard">
+      <h2 id="shareTitle">Compartir partida</h2>
+      <div id="shareBody">
+        <p class="sub" style="margin:0">Los demás podrán ver la partida en su móvil. Solo tú sacas las cartas.</p>
+      </div>
+      <button class="btn ghost wide" id="shareClose">Volver a la partida</button>
+    </div>
+  </div>
+
   <!-- EDAD -->
   <section id="agegate" class="agegate" hidden>
     <h2>Solo para mayores de 18 años</h2>
@@ -302,13 +324,28 @@ body.hasnotice .app{padding-bottom:170px}
       <p class="empty" id="setupErr" style="color:#f0a090" hidden></p>
     </div>
     <button class="draw" id="setupGo" style="align-self:center">Empezar partida</button>
+    <div class="box joinbox">
+      <h2>¿Te han pasado un código?</h2>
+      <p class="empty">Únete para seguir en tu móvil la partida de otra persona. Solo el anfitrión saca las cartas.</p>
+      <div class="addrow"><input id="joinIn" placeholder="Código, p. ej. GNMK" maxlength="4" autocomplete="off" autocapitalize="characters" enterkeyhint="go"><button class="btn" id="joinBtn" style="background:var(--gold);color:var(--ink)">Unirme</button></div>
+      <p class="empty" id="joinErr" style="color:#f0a090" hidden></p>
+    </div>
     <p class="foot">Solo para mayores de 18 años · <button class="linkbtn" data-go="legal">Aviso legal y privacidad</button></p>
+  </section>
+
+  <!-- ESPERA (espectador) -->
+  <section id="waitbox" class="agegate" hidden>
+    <img class="endlogo" id="waitLogo" alt="">
+    <h2 id="waitTitle">Conectando con la partida…</h2>
+    <p id="waitText">La primera vez puede tardar hasta un minuto.</p>
+    <button class="btn ghost wide" id="waitLeave">Salir de la sala</button>
   </section>
 
   <!-- MESA -->
   <section id="tab-mesa" class="panel">
     <div class="turn" id="turnbox">
       <div class="label">Le toca a</div><strong id="turnname">—</strong>
+      <span class="live" id="liveTag" hidden></span>
     </div>
     <div class="stage">
       <div class="cardbox"><div class="card back" id="card" role="button" tabindex="0"></div></div>
@@ -332,10 +369,11 @@ body.hasnotice .app{padding-bottom:170px}
     </div>
     <div class="intro">
       <h2>Política de privacidad</h2>
-      <p><b>Datos que se recogen.</b> Ninguno. Gnomo no tiene registro, cuentas ni formularios de contacto, y no envía datos a ningún servidor.</p>
+      <p><b>Datos que se recogen.</b> Gnomo no tiene registro, cuentas ni formularios de contacto. Mientras juegas en un solo móvil, no envía datos a ningún servidor.</p>
       <p><b>Nombres de los jugadores.</b> Los nombres que escribes al empezar una partida se guardan solo en tu navegador, en tu propio dispositivo, para que la partida no se pierda si recargas la página. Se borran automáticamente al cerrar la pestaña o la app. Nadie más, ni siquiera la persona titular, puede verlos.</p>
+      <p><b>Compartir partida.</b> Si el anfitrión usa «Compartir partida», los nombres de los jugadores, las cartas que van saliendo y el orden de turnos se envían a nuestro servidor de salas para que los demás móviles con el código puedan verlos. El código de la sala es lo único que permite verla. Esos datos se guardan solo en la memoria del servidor, no se usan para nada más y se borran cuando el anfitrión deja de compartir o tras 12 horas sin actividad. Si no quieres que tu nombre aparezca, usa un apodo.</p>
       <p><b>Alojamiento.</b> La app está alojada en Render (Render Services, Inc.). Como cualquier servidor web, Render puede registrar datos técnicos de la conexión, como la dirección IP o el tipo de navegador, para que la web funcione y sea segura. Puedes consultar su política en render.com/privacy.</p>
-      <p><b>Sin servicios de terceros.</b> Las tipografías y las imágenes van incluidas en la propia app, así que tu navegador no se conecta a Google ni a ningún otro servicio externo mientras juegas.</p>
+      <p><b>Sin servicios de terceros.</b> Las tipografías y las imágenes van incluidas en la propia app, así que tu navegador no se conecta a Google ni a ningún otro servicio externo. Solo se conecta a nuestro servidor de salas si se comparte la partida.</p>
       <p><b>Tus derechos.</b> Como la app no guarda datos personales tuyos, no hay datos que consultar, corregir o borrar. Si tienes cualquier duda puedes escribir a info.kairospace@gmail.com, y si lo consideras necesario puedes reclamar ante la Agencia Española de Protección de Datos (aepd.es).</p>
     </div>
     <div class="intro">
@@ -353,6 +391,7 @@ body.hasnotice .app{padding-bottom:170px}
       <h2>Cómo se juega</h2>
       <p>Por turnos, cada jugador saca una carta y cumple lo que dice su número. Cuando se acaba la baraja, podéis volver a barajar y seguir jugando con las mismas normas y poderes, o empezar una partida nueva.</p>
       <p>Si alguien se salta una carta sin querer, en «Historial de cartas» podéis ver todas las que han salido, quién las sacó y su regla.</p>
+      <p>Con «Compartir partida» cada uno puede seguir la partida en su propio móvil: el anfitrión crea un código y los demás lo escriben en gnomo.onrender.com o abren el enlace. Solo el anfitrión saca las cartas.</p>
       <p>Desde «Jugadores», en el menú de la esquina superior derecha, podéis añadir, quitar o cambiar el nombre de cualquier jugador a mitad de partida. Los nuevos entran al final del orden de turnos.</p>
     </div>
     <div id="manualList" class="manual"></div>
@@ -402,7 +441,7 @@ function newDeck(){const d=[];for(const s of Object.keys(SUITS))for(let n=1;n<=1
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
 try{localStorage.removeItem(KEY)}catch(e){}
 function load(){try{const r=sessionStorage.getItem(KEY);if(r){S=JSON.parse(r);if(S.started===undefined)S.started=true;if(S.players.length)setupNames=[...S.players];return}}catch(e){}S=fresh()}
-function save(){try{sessionStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function save(){if(VIEW)return;try{sessionStorage.setItem(KEY,JSON.stringify(S))}catch(e){}pushState()}
 const $=id=>document.getElementById(id);
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const cur=()=>S.players.length?S.players[S.turn%S.players.length]:"Jugador";
@@ -473,9 +512,15 @@ function renderRule(){
   const n=S.last.c.n,r=RULES[n];
   box.innerHTML=`<div class="rule"><div class="head"><span class="num">${n}</span><h3>${r.t}<span class="emo">${EMO[n]}</span></h3></div><p>${r.s}</p></div>`;
 }
+function deckLeft(){return S.deck?S.deck.length:(S.deckLeft||0)}
 function renderTurn(){
   $("turnname").textContent=S.last?S.last.who:cur();
-  $("draw").textContent=S.deck.length?"Toca la carta para sacar":"Se acabó la baraja · toca la carta";
+  if(VIEW) $("draw").textContent=deckLeft()?"Solo el anfitrión saca las cartas":"Se acabó la baraja · el anfitrión decide cómo seguir";
+  else $("draw").textContent=deckLeft()?"Toca la carta para sacar":"Se acabó la baraja · toca la carta";
+  const t=$("liveTag");
+  if(VIEW){t.hidden=false;t.className="live view";t.textContent="👀 Sala "+VIEW.code}
+  else if(ROOM){t.hidden=false;t.className="live";t.textContent="📲 "+ROOM.code+(ROOM.viewers?" · "+ROOM.viewers:"")}
+  else t.hidden=true;
 }
 function renderManual(){
   $("manualList").innerHTML=Object.entries(RULES).map(([n,r])=>`<article class="mrule"><span class="num">${n}</span><div>${r.tag?`<span class="tag">${r.tag}</span>`:""}<h3>${r.t}<span class="emo">${EMO[n]}</span></h3>${r.m.map(p=>`<p>${p}</p>`).join("")}</div></article>`).join("");
@@ -492,6 +537,20 @@ function showScreens(){
   adult=adult||window.__adult;
   if(!adult&&tab!=="legal"){$("agegate").hidden=false;$("setup").hidden=true;$("tab-mesa").hidden=true;$("tab-manual").hidden=true;$("tab-legal").hidden=true;$("backBtn").hidden=true;$("menuBtn").parentElement.hidden=true;document.body.classList.remove("game");document.body.classList.add("gate");return}
   document.body.classList.remove("gate");$("agegate").hidden=true;$("menuBtn").parentElement.hidden=false;
+  document.body.classList.toggle("viewer",!!VIEW);
+  $("menuShare").hidden=!st||!!VIEW;$("menuLeave").hidden=!VIEW;
+  if(VIEW){
+    const ready=VIEW.ok&&S.started;
+    $("waitbox").hidden=ready||tab!=="mesa";$("setup").hidden=true;
+    if(!ready)document.body.classList.remove("game");
+    ["mesa","manual","legal"].forEach(t=>$("tab-"+t).hidden=t!==tab||(t==="mesa"&&!ready));
+    $("menuNew").hidden=true;$("menuAdd").hidden=true;$("menuHist").hidden=!ready;
+    const fab=ready&&(tab==="manual"||tab==="legal");$("fabBack").hidden=!fab;document.body.classList.toggle("hasfab",fab);
+    $("backBtn").hidden=tab==="mesa";$("backBtn").textContent="← Volver a la mesa";
+    document.querySelectorAll("#menu button[data-tab]").forEach(x=>x.setAttribute("aria-current",x.dataset.tab===tab));
+    return;
+  }
+  $("waitbox").hidden=true;
   const io=!!intro;
   $("manualNotice").hidden=!io||noticeClosed;document.body.classList.toggle("hasnotice",io&&!noticeClosed);$("manualGo").hidden=!io;if(io)$("menuBtn").parentElement.hidden=true;
   if(io&&tab!=="legal"){$("setup").hidden=true;$("tab-mesa").hidden=true;$("tab-manual").hidden=false;$("backBtn").hidden=false;$("backBtn").textContent="← Cambiar jugadores";return}
@@ -564,6 +623,7 @@ function all(anim){showScreens();if(!S.started){renderSetup();return}renderCard(
 $("card").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();drawCard()}};
 $("card").onclick=()=>drawCard();
 function drawCard(){
+  if(VIEW)return;
   if(!S.deck.length){$("endov").hidden=false;$("endMore").focus();return}
   const c=S.deck.pop(),who=cur();
   S.last={c,who};(S.hist=S.hist||[]).push({n:c.n,s:c.s,who,b:S.shuf||1});S.turn=(S.turn+1)%S.players.length;
@@ -571,8 +631,107 @@ function drawCard(){
 }
 function burst(e){const d=document.createElement("div");d.className="burst";const k=e.startsWith("<")?1:[...e].filter(ch=>ch.codePointAt(0)>0x2000).length;d.style.setProperty("--k",k>2?.55:k>1?.75:1);d.setAttribute("aria-hidden","true");d.innerHTML=`<span>${e}</span>`;document.body.appendChild(d);setTimeout(()=>d.remove(),1000)}
 try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{})}catch(e){}
-$("endLogo").src=EMO[7].match(/src="([^"]+)"/)[1];
-load();renderManual();all();
+$("endLogo").src=EMO[7].match(/src="([^"]+)"/)[1];$("waitLogo").src=$("endLogo").src;
+
+/* ---------- Compartir partida ---------- */
+const API="https://gnomo-salas.onrender.com";
+const SITE="https://gnomo.onrender.com";
+let ROOM=null,VIEW=null,pushT=null,es=null,retryT=null,pingT=null;
+try{ROOM=JSON.parse(sessionStorage.getItem("gnomo-room")||"null")}catch(e){}
+function publicState(){return{started:S.started,players:S.players,turn:S.turn,last:S.last,hist:S.hist||[],shuf:S.shuf||1,deckLeft:S.deck?S.deck.length:0}}
+async function api(path,opt={}){
+  const r=await fetch(API+path,{...opt,headers:{"Content-Type":"application/json",...(opt.headers||{})}});
+  const j=await r.json().catch(()=>({}));
+  if(!r.ok){const e=new Error(j.error||"Error");e.status=r.status;throw e}
+  return j;
+}
+async function ensureRoom(){
+  const j=await api("/rooms",{method:"POST",body:JSON.stringify(ROOM?{code:ROOM.code,hostKey:ROOM.hostKey}:{})});
+  ROOM={code:j.code,hostKey:j.hostKey,viewers:ROOM&&ROOM.viewers||0};
+  try{sessionStorage.setItem("gnomo-room",JSON.stringify({code:ROOM.code,hostKey:ROOM.hostKey}))}catch(e){}
+  startPing();
+}
+function startPing(){clearInterval(pingT);pingT=setInterval(()=>{fetch(API+"/health").catch(()=>{})},4*60*1000)}
+function pushState(){
+  if(!ROOM||VIEW)return;
+  clearTimeout(pushT);
+  pushT=setTimeout(async()=>{
+    try{const j=await api(`/rooms/${ROOM.code}/state`,{method:"POST",headers:{"X-Host-Key":ROOM.hostKey},body:JSON.stringify(publicState())});ROOM.viewers=j.viewers;renderTurn();if(!$("shareov").hidden)renderShare()}
+    catch(e){if(e.status===404){try{await ensureRoom();pushState()}catch(_){}}}
+  },120);
+}
+function shareURL(){return `${SITE}/?sala=${ROOM.code}`}
+function renderShare(msg){
+  const b=$("shareBody");
+  if(!ROOM){b.innerHTML=`<p class="sub" style="margin:0">Los demás podrán ver la partida en su móvil: la carta que sale, a quién le toca y el historial. Solo tú sacas las cartas.</p>${msg?`<p class="sub" style="margin:0;color:#f0a090">${msg}</p>`:""}<button class="draw" id="shareStart">Crear código</button>`;$("shareStart").onclick=startShare;return}
+  b.innerHTML=`<p class="sub" style="margin:0">Que los demás entren en <b>gnomo.onrender.com</b> y escriban este código:</p>
+    <div class="code" aria-label="Código ${ROOM.code.split("").join(" ")}">${ROOM.code}</div>
+    <p class="sub" style="margin:0">o que abran este enlace:</p>
+    <div class="sharelink" id="shareLink">${shareURL()}</div>
+    <div class="sharebtns"><button class="btn" id="shareSend" style="background:var(--gold);color:var(--ink)">Enviar enlace</button><button class="btn ghost" id="shareCopy">Copiar</button></div>
+    <p class="sub" style="margin:0" id="shareMsg">${msg||(ROOM.viewers?`${ROOM.viewers} ${ROOM.viewers===1?"móvil conectado":"móviles conectados"}.`:"Todavía no se ha conectado nadie.")}</p>
+    <button class="linkbtn" id="shareStop">Dejar de compartir</button>`;
+  $("shareSend").onclick=async()=>{const d={title:"Gnomo",text:`Únete a la partida de Gnomo con el código ${ROOM.code}`,url:shareURL()};
+    if(navigator.share){try{await navigator.share(d)}catch(e){}}else copyLink()};
+  $("shareCopy").onclick=copyLink;
+  $("shareStop").onclick=async()=>{const r=ROOM;ROOM=null;try{sessionStorage.removeItem("gnomo-room")}catch(e){}clearInterval(pingT);renderShare("Has dejado de compartir. Los demás ya no ven la partida.");renderTurn();try{await api(`/rooms/${r.code}/close`,{method:"POST",headers:{"X-Host-Key":r.hostKey}})}catch(e){}};
+}
+async function copyLink(){try{await navigator.clipboard.writeText(shareURL());$("shareMsg").textContent="Enlace copiado."}catch(e){const r=document.createRange();r.selectNodeContents($("shareLink"));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);$("shareMsg").textContent="Enlace seleccionado: cópialo con el menú del móvil."}}
+async function startShare(){
+  $("shareBody").innerHTML=`<p class="sub" style="margin:0">Creando la sala… La primera vez puede tardar hasta un minuto.</p>`;
+  try{await ensureRoom();pushState();renderShare();renderTurn()}
+  catch(e){ROOM=null;renderShare(location.hostname.endsWith("onrender.com")?"No se ha podido conectar. Revisa la conexión a internet y vuelve a intentarlo.":"Compartir solo funciona desde gnomo.onrender.com.")}
+}
+$("menuShare").onclick=()=>{setMenu(false);renderShare();$("shareov").hidden=false};
+$("shareClose").onclick=()=>{$("shareov").hidden=true};
+
+/* ---------- Unirse como espectador ---------- */
+function joinRoom(code){
+  code=(code||"").toUpperCase().replace(/[^A-Z]/g,"");
+  if(code.length!==4){$("joinErr").textContent="El código tiene 4 letras.";$("joinErr").hidden=false;return}
+  $("joinErr").hidden=true;
+  VIEW={code,ok:false};ROOM=null;S={started:false,players:[],turn:0,last:null,hist:[],deckLeft:40};tab="mesa";
+  try{sessionStorage.setItem("gnomo-view",code)}catch(e){}
+  $("waitTitle").textContent="Conectando con la partida…";$("waitText").textContent="La primera vez puede tardar hasta un minuto.";
+  all();connectView();
+}
+function connectView(){
+  if(!VIEW)return;
+  if(es)es.close();clearTimeout(retryT);
+  es=new EventSource(`${API}/rooms/${VIEW.code}/events`);
+  es.onmessage=ev=>{
+    let d;try{d=JSON.parse(ev.data)}catch(e){return}
+    const prevN=(S.hist||[]).length, wasOk=VIEW.ok;
+    VIEW.ok=true;
+    if(!d.state){S={started:false,players:[],turn:0,last:null,hist:[],deckLeft:40}}
+    else S=d.state;
+    if(!S.started){$("waitTitle").textContent=`Sala ${VIEW.code}`;$("waitText").textContent="Esperando a que el anfitrión empiece la partida…"}
+    const newCard=wasOk&&S.started&&(S.hist||[]).length>prevN&&S.last;
+    all(!!newCard);
+    if(newCard&&tab==="mesa"){burst(EMO[S.last.c.n])}
+    if(!$("histov").hidden)renderHist();
+  };
+  es.addEventListener("closed",()=>{es.close();VIEW.ok=false;$("waitTitle").textContent="La sala se ha cerrado";$("waitText").textContent="El anfitrión ha dejado de compartir la partida.";S.started=false;all()});
+  es.onerror=()=>{
+    if(es.readyState===2){ // cerrada: la sala no existe o el servidor se está despertando
+      fetch(`${API}/rooms/${VIEW.code}`).then(r=>{
+        if(r.status===404&&VIEW&&!VIEW.ok){$("waitTitle").textContent="No encontramos esa sala";$("waitText").textContent=`Revisa el código ${VIEW.code} o pide al anfitrión que lo vuelva a compartir.`;}
+      }).catch(()=>{});
+      retryT=setTimeout(connectView,4000);
+    }
+  };
+}
+function leaveRoom(){if(es)es.close();clearTimeout(retryT);VIEW=null;try{sessionStorage.removeItem("gnomo-view")}catch(e){}history.replaceState(null,"",location.pathname);load();tab="mesa";all()}
+$("joinBtn").onclick=()=>joinRoom($("joinIn").value);
+$("joinIn").onkeydown=e=>{if(e.key==="Enter")joinRoom($("joinIn").value)};
+$("joinIn").oninput=e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z]/g,"")};
+$("waitLeave").onclick=leaveRoom;
+$("menuLeave").onclick=()=>{setMenu(false);leaveRoom()};
+load();renderManual();
+(function(){let q=null;try{q=new URLSearchParams(location.search).get("sala")}catch(e){}
+  let v=null;try{v=sessionStorage.getItem("gnomo-view")}catch(e){}
+  const code=q||v;
+  if(code){joinRoom(code)}else{all();if(ROOM){startPing();pushState()}}})();
 </script>
 </body>
 </html>
