@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0e3324">
 <meta name="apple-mobile-web-app-title" content="Gnomo">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -25,7 +25,8 @@
   --body:"Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
   color-scheme:dark;
 }
-html,body{height:100%;overflow-x:hidden}
+html,body{height:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+*{touch-action:manipulation}
 input{font-size:16px!important}
 body{background:radial-gradient(120% 80% at 50% 0%,var(--felt-3),var(--felt) 55%,var(--felt-2));background-color:var(--felt);color:var(--cream);font-family:var(--body);font-size:15px;line-height:1.5}
 *{box-sizing:border-box}
@@ -320,12 +321,14 @@ body.hasnotice .app{padding-bottom:170px}
 
   <div class="endov" id="keepov" role="dialog" aria-modal="true" aria-labelledby="keepTitle" hidden>
     <div class="endcard">
-      <h2 id="keepTitle">¿Seguís compartiendo?</h2>
-      <p style="margin:0">La partida anterior se compartía con el código</p>
+      <h2 id="keepTitle">¿Nueva partida con el mismo código?</h2>
+      <p style="margin:0">Esta partida se está compartiendo con el código</p>
       <div class="code" id="keepCode"></div>
-      <p class="sub" style="margin:0">Si seguís con el mismo código, los móviles que ya estaban conectados verán la nueva partida sin hacer nada.</p>
       <button class="draw" id="keepYes">Seguir con este código</button>
-      <button class="btn ghost wide" id="keepNo">Jugar sin compartir</button>
+      <p class="sub" style="margin:0">Empieza ya una partida nueva con los mismos jugadores. Los móviles conectados la verán sin hacer nada.</p>
+      <button class="btn ghost wide" id="keepNo">Dejar de compartir</button>
+      <p class="sub" style="margin:0">Se cierra la sala y vuelves a la pantalla de jugadores.</p>
+      <button class="linkbtn" id="keepCancel">Cancelar</button>
     </div>
   </div>
 
@@ -397,7 +400,7 @@ body.hasnotice .app{padding-bottom:170px}
     <div class="intro">
       <h2>Política de cookies</h2>
       <p>Gnomo no usa cookies, ni de análisis ni de publicidad, y no hace seguimiento de ningún tipo.</p>
-      <p>Solo usa el almacenamiento de sesión del navegador para mantener la partida en curso mientras la app está abierta. Es un almacenamiento técnico, imprescindible para el funcionamiento del juego, que se borra solo al cerrar la app. Si compartes la partida, también recuerda en tu móvil durante 12 horas el código de la sala, para poder seguir usándolo en la siguiente partida. Por eso no hace falta pedirte consentimiento.</p>
+      <p>Solo usa el almacenamiento de sesión del navegador para mantener la partida en curso mientras la app está abierta. Es un almacenamiento técnico, imprescindible para el funcionamiento del juego, que se borra solo al cerrar la app. Por eso no hace falta pedirte consentimiento.</p>
     </div>
     <p class="foot">Última actualización: 11 de octubre de 2026</p>
   </section>
@@ -623,7 +626,13 @@ $("addClose").onclick=()=>{document.activeElement&&document.activeElement.blur()
 $("noticeX").onclick=()=>{noticeClosed=true;$("manualNotice").hidden=true;document.body.classList.remove("hasnotice")};
 $("ageYes").onclick=()=>{window.__adult=true;try{sessionStorage.setItem("gnomo-18","1")}catch(e){}showScreens();window.scrollTo(0,0)};
 document.querySelectorAll("#menu button[data-tab]").forEach(b=>b.onclick=()=>goTab(b.dataset.tab));
-function endGame(){setupNames=S.players.length?[...S.players]:["",""];S=fresh();tab="mesa";save();setMenu(false);all()}
+function endGame(){
+  setMenu(false);
+  if(ROOM&&!VIEW&&S.started){$("keepCode").textContent=ROOM.code;$("keepov").hidden=false;return}
+  resetToSetup();
+}
+function resetToSetup(){setupNames=S.players.length?[...S.players]:["",""];S=fresh();tab="mesa";save();all()}
+function newSharedGame(){const pl=[...S.players];S=fresh();S.players=pl;S.started=true;tab="mesa";save();all();window.scrollTo(0,0)}
 $("menuNew").onclick=()=>{if(!newArmed){newArmed=true;$("menuNew").textContent="¿Seguro? Toca otra vez";return}endGame()};
 $("fabBack").onclick=()=>goTab("mesa");
 $("backBtn").onclick=()=>{if(tab==="legal"&&!intro&&prevTab==="manual"){goTab("manual");return}if(tab==="legal"&&intro){tab="mesa";showScreens();window.scrollTo(0,0);return}if(intro){intro=null;showScreens();window.scrollTo(0,0);return}goTab("mesa")};
@@ -634,13 +643,11 @@ $("setupGo").onclick=()=>{
   const names=setupNames.map(n=>n.trim()).filter(Boolean);
   if(names.length<2){$("setupErr").textContent="Escribe al menos 2 nombres para empezar.";$("setupErr").hidden=false;return}
   $("setupErr").hidden=true;
-  const prev=ROOM||lastRoom();
-  if(prev&&!keepAsked&&!VIEW){keepCand=prev;$("keepCode").textContent=prev.code;$("keepov").hidden=false;return}
-  keepAsked=false;intro=names;noticeClosed=false;showScreens();window.scrollTo(0,0);
+  intro=names;noticeClosed=false;showScreens();window.scrollTo(0,0);
 };
-let keepAsked=false,keepCand=null;
-$("keepYes").onclick=()=>{$("keepov").hidden=true;keepAsked=true;if(!ROOM){ROOM={code:keepCand.code,hostKey:keepCand.hostKey,viewers:0};ensureRoom().then(()=>{pushState();renderTurn()}).catch(()=>{})}$("setupGo").click()};
-$("keepNo").onclick=async()=>{$("keepov").hidden=true;const r=ROOM||keepCand;ROOM=null;forgetRoom();clearInterval(pingT);keepAsked=true;$("setupGo").click();try{await api(`/rooms/${r.code}/close`,{method:"POST",headers:{"X-Host-Key":r.hostKey}})}catch(e){}};
+$("keepYes").onclick=()=>{$("keepov").hidden=true;newSharedGame()};
+$("keepNo").onclick=async()=>{$("keepov").hidden=true;const r=ROOM;ROOM=null;forgetRoom();clearInterval(pingT);resetToSetup();try{await api(`/rooms/${r.code}/close`,{method:"POST",headers:{"X-Host-Key":r.hostKey}})}catch(e){}};
+$("keepCancel").onclick=()=>{$("keepov").hidden=true;if(!S.deck.length){$("endov").hidden=false}};
 $("manualGo").onclick=()=>{S=fresh();S.players=intro;S.started=true;intro=null;tab="mesa";save();all();window.scrollTo(0,0)};
 function all(anim){showScreens();if(!S.started){renderSetup();return}renderCard(anim);renderRule();renderTurn()}
 
@@ -654,6 +661,9 @@ function drawCard(){
   save();all(true);burst(EMO[c.n]);
 }
 function burst(e){const d=document.createElement("div");d.className="burst";const k=e.startsWith("<")?1:[...e].filter(ch=>ch.codePointAt(0)>0x2000).length;d.style.setProperty("--k",k>2?.55:k>1?.75:1);d.setAttribute("aria-hidden","true");d.innerHTML=`<span>${e}</span>`;document.body.appendChild(d);setTimeout(()=>d.remove(),1000)}
+/* Sin zoom: bloquea pellizcar y doble toque (iOS ignora user-scalable=no) */
+["gesturestart","gesturechange","gestureend"].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+document.addEventListener("touchmove",e=>{if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});
 try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{})}catch(e){}
 $("endLogo").src=EMO[7].match(/src="([^"]+)"/)[1];$("waitLogo").src=$("endLogo").src;
 
@@ -662,8 +672,8 @@ const API="https://gnomo-salas.onrender.com";
 const SITE="https://gnomo.onrender.com";
 let ROOM=null,VIEW=null,pushT=null,es=null,retryT=null,pingT=null;
 try{ROOM=JSON.parse(sessionStorage.getItem("gnomo-room")||"null")}catch(e){}
-function lastRoom(){try{const r=JSON.parse(localStorage.getItem("gnomo-lastroom")||"null");if(r&&Date.now()-r.t<12*3600*1000)return r}catch(e){}return null}
-function rememberRoom(){if(!ROOM)return;try{localStorage.setItem("gnomo-lastroom",JSON.stringify({code:ROOM.code,hostKey:ROOM.hostKey,t:Date.now()}))}catch(e){}}
+function rememberRoom(){}
+try{localStorage.removeItem("gnomo-lastroom")}catch(e){}
 function forgetRoom(){try{sessionStorage.removeItem("gnomo-room");localStorage.removeItem("gnomo-lastroom")}catch(e){}}
 function publicState(){return{started:S.started,players:S.players,turn:S.turn,last:S.last,hist:S.hist||[],shuf:S.shuf||1,deckLeft:S.deck?S.deck.length:0}}
 async function api(path,opt={}){
