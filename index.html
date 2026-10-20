@@ -536,11 +536,10 @@ function gnomeSVG(s,opt={}){
     back=arm("M14 -34Q26 -42 26 -56");
     front=`<g transform="translate(27 -74) scale(.7)">${PIPS.copas}</g>${hand(26,-58)}${arm("M-14 -32Q-22 -24 -18 -16")}${hand(-18,-15)}`;
   } else if(s==="espadas"){ // espada en alto, valiente
-    back=`<g transform="translate(26 -46) scale(.86)">${PIPS.espadas}</g>`;
-    front=`${arm("M14 -32Q22 -30 25 -24")}${hand(26,-26)}${arm("M-14 -32Q-22 -24 -14 -17")}${hand(-13,-17,5)}`;
+    front=`<g transform="translate(31 -46) scale(.86)">${PIPS.espadas}</g>${arm("M14 -32Q22 -30 27 -26")}${hand(30,-28)}${arm("M-14 -32Q-22 -24 -14 -17")}${hand(-13,-17,5)}`;
   } else {                // bastos: garrote al hombro
-    back=`<g transform="translate(28 -50) rotate(-30) scale(.86)">${PIPS.bastos}</g>`;
-    front=`${arm("M14 -32Q25 -30 21 -21")}${hand(21,-22)}${arm("M-14 -32Q-22 -24 -14 -17")}${hand(-13,-17,5)}`;
+    back=`<g transform="translate(34 -46) rotate(-10) scale(.86)">${PIPS.bastos}</g>`;
+    front=`${arm("M14 -32Q24 -30 29 -24")}${hand(30,-26)}${arm("M-14 -32Q-22 -24 -14 -17")}${hand(-13,-17,5)}`;
   }
   const crown=opt.crown?`<g transform="translate(23 -122) rotate(18)"><path d="M-10 4L-8 -6L-3 0L0 -9L3 0L8 -6L10 4Z" fill="url(#cGoldL)" ${st} stroke-width="1.5"/><circle cx="0" cy="-9" r="1.8" fill="#e8604c"/></g>`:"";
   return `<g>
@@ -577,22 +576,20 @@ function gnomeSVG(s,opt={}){
 }
 const GN_DEFS='<radialGradient id="gnSkin" cx=".42" cy=".38" r=".8"><stop offset="0" stop-color="#ffe6cf"/><stop offset="1" stop-color="#f4bd98"/></radialGradient><radialGradient id="gnNose" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#ffc9b4"/><stop offset=".6" stop-color="#f28a78"/><stop offset="1" stop-color="#d0625a"/></radialGradient><linearGradient id="gnBeard" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#ece6dc"/></linearGradient><linearGradient id="gnHat" x1="0" y1="0" x2="1" y2=".4"><stop offset="0" stop-color="#d63a2c"/><stop offset=".5" stop-color="#f05a45"/><stop offset="1" stop-color="#c22d1f"/></linearGradient><linearGradient id="gnShade" x1="0" x2="1"><stop offset="0" stop-color="rgba(0,0,0,.15)"/><stop offset="1" stop-color="rgba(0,0,0,.15)"/></linearGradient>';
 
-function gnPips(m,s){
-  if(m<=0)return "";
-  const tall=s==="espadas"||s==="bastos";
-  const rows=m<=4?1:2, per=[Math.ceil(m/rows),m-Math.ceil(m/rows)].slice(0,rows);
-  const k=tall?(rows>1?.5:.62):(rows>1?.55:.62);
-  const top=40,bot=tall?124:128, rh=(bot-top)/rows;
+const GN_ROWS={2:[1,1],3:[2,1],4:[2,2],5:[2,1,2],6:[2,2,2],7:[3,1,3],8:[3,2,3],9:[3,3,3]};
+function gnGroup(n,s){
+  const rows=GN_ROWS[n], maxPer=Math.max(...rows), cellW=118/maxPer, cellH=234/rows.length;
+  const k=Math.min(cellW/72,cellH/128), dx=s==="oros"?0:-7*k, g=gnomeSVG(s);
   let out="";
-  per.forEach((c,r)=>{const y=top+rh*(r+.5), gap=Math.min(30,112/c);
-    for(let i=0;i<c;i++){const x=100+(i-(c-1)/2)*gap;out+=`<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${k})">${PIPS[s]}</g>`}});
+  rows.forEach((c,r)=>{const y=33+cellH*(r+1)-2;
+    for(let i=0;i<c;i++){const x=100+(i-(c-1)/2)*cellW+dx;out+=`<g transform="translate(${x.toFixed(1)} ${y.toFixed(1)}) scale(${k.toFixed(3)})">${g}</g>`}});
   return out;
 }
 function cardSVG(n,s){
   let body="";
   if(n===1) body=`<g transform="translate(${s==="oros"?100:94} 264) scale(1.45)">${gnomeSVG(s)}</g>`;
   else if(n===10) body=`<path d="M48 120Q100 96 152 120L156 262H44Z" fill="${GN_TUNIC[s]}" opacity=".18"/><g transform="translate(${s==="oros"?100:94} 264) scale(1.42)">${gnomeSVG(s,{crown:true})}</g>`;
-  else body=gnPips(n-1,s)+`<g transform="translate(${s==="oros"?100:96} 264) scale(1.05)">${gnomeSVG(s)}</g>`;
+  else body=gnGroup(n,s);
   const corner=`<text x="0" y="0" font-family="Georgia,'Times New Roman',serif" font-weight="700" font-size="26" fill="#1d1a14" text-anchor="middle">${n}</text><g transform="translate(0 18) scale(.36)">${PIPS[s]}</g>`;
   return `<svg class="cf" viewBox="0 0 200 300" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${CARD_DEFS.replace("</defs>",GN_DEFS+"</defs>")}
     <rect x="1" y="1" width="198" height="298" rx="14" fill="#fff"/>
