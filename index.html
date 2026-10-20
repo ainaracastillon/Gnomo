@@ -521,70 +521,61 @@ const LAYOUT={1:[[100,150]],2:[[100,85],[100,215]],3:[[100,75],[100,150],[100,22
  8:[[70,66],[130,66],[70,122],[130,122],[70,178],[130,178],[70,234],[130,234]],
  9:[[70,66],[130,66],[70,122],[130,122],[100,150],[70,178],[130,178],[70,234],[130,234]]};
 /* ---------- Gnomos de la baraja ---------- */
-const GN_TUNIC={oros:"#d9a521",copas:"#c0392b",espadas:"#2c5d9e",bastos:"#4f7a1f"};
-const GN_TRIM={oros:"#8a5c0c",copas:"#7a1c12",espadas:"#173763",bastos:"#2c4512"};
-// Gnomo de pie, origen entre los pies (0,0); mide ~130 de alto. pose: oros|copas|espadas|bastos
+const GN_TUNIC={oros:"#f2b632",copas:"#e8604c",espadas:"#4a8fd8",bastos:"#6cbf57"};
+const GN_TRIM={oros:"#b07b12",copas:"#a8352a",espadas:"#2c5d9e",bastos:"#3f8a33"};
+// Gnomo chibi, origen entre los pies (0,0); mide ~125 de alto.
 function gnomeSVG(s,opt={}){
-  const T=GN_TUNIC[s],D=GN_TRIM[s],hat=opt.hat||"url(#gnHat)";
-  const st='stroke="#2a1c14" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round"';
-  const skin='url(#gnSkin)';
-  // brazos y objeto según el palo
+  const T=GN_TUNIC[s],D=GN_TRIM[s];
+  const L='#3b2416', st=`stroke="${L}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"`;
+  const arm=(d)=>`<path d="${d}" fill="none" stroke="${L}" stroke-width="10.5" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${T}" stroke-width="6.8" stroke-linecap="round"/>`;
+  const hand=(x,y,r=5.6)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="url(#gnSkin)" ${st}/>`;
   let back="",front="";
-  if(s==="oros"){ // sostiene la moneda delante de la barriga con las dos manos
-    front=`<path d="M-17 -60Q-26 -48 -16 -38" fill="none" stroke="${T}" stroke-width="9"/><path d="M17 -60Q26 -48 16 -38" fill="none" stroke="${T}" stroke-width="9"/>
-      <g transform="translate(0 -38) scale(.95)">${PIPS.oros}</g>
-      <circle cx="-16" cy="-37" r="5.2" fill="${skin}" ${st}/><circle cx="16" cy="-37" r="5.2" fill="${skin}" ${st}/>`;
-  } else if(s==="copas"){ // brinda levantando la copa
-    back=`<path d="M17 -60Q30 -72 30 -90" fill="none" stroke="#2a1c14" stroke-width="11"/><path d="M17 -60Q30 -72 30 -90" fill="none" stroke="${T}" stroke-width="8.6"/>`;
-    front=`<g transform="translate(31 -108) scale(.72)">${PIPS.copas}</g><circle cx="30" cy="-92" r="5.2" fill="${skin}" ${st}/>
-      <path d="M-17 -60Q-27 -48 -22 -36" fill="none" stroke="#2a1c14" stroke-width="11"/><path d="M-17 -60Q-27 -48 -22 -36" fill="none" stroke="${T}" stroke-width="8.6"/>
-      <circle cx="-22" cy="-34" r="5.2" fill="${skin}" ${st}/>`;
-  } else if(s==="espadas"){ // espada en alto, en guardia
-    back=`<g transform="translate(29 -66) scale(.95)">${PIPS.espadas}</g>`;
-    front=`<path d="M17 -60Q27 -54 28 -46" fill="none" stroke="#2a1c14" stroke-width="11"/><path d="M17 -60Q27 -54 28 -46" fill="none" stroke="${T}" stroke-width="8.6"/>
-      <circle cx="29" cy="-49" r="5.4" fill="${skin}" ${st}/>
-      <path d="M-17 -60Q-26 -50 -16 -40" fill="none" stroke="#2a1c14" stroke-width="11"/><path d="M-17 -60Q-26 -50 -16 -40" fill="none" stroke="${T}" stroke-width="8.6"/>
-      <circle cx="-15" cy="-40" r="5" fill="${skin}" ${st}/>`;
-  } else { // bastos: garrote al hombro
-    back=`<g transform="translate(30 -72) rotate(-28) scale(.92)">${PIPS.bastos}</g>`;
-    front=`<path d="M17 -60Q30 -54 24 -44" fill="none" stroke="#2a1c14" stroke-width="11"/><path d="M17 -60Q30 -54 24 -44" fill="none" stroke="${T}" stroke-width="8.6"/>
-      <circle cx="24" cy="-45" r="5.4" fill="${skin}" ${st}/>
-      <path d="M-17 -60Q-26 -50 -16 -40" fill="none" stroke="#2a1c14" stroke-width="11"/><path d="M-17 -60Q-26 -50 -16 -40" fill="none" stroke="${T}" stroke-width="8.6"/>
-      <circle cx="-15" cy="-40" r="5" fill="${skin}" ${st}/>`;
+  if(s==="oros"){        // abraza la moneda
+    front=`<g transform="translate(0 -22) scale(.78)">${PIPS.oros}</g>${arm("M-15 -34Q-20 -26 -13 -20")}${arm("M15 -34Q20 -26 13 -20")}${hand(-12,-20)}${hand(12,-20)}`;
+  } else if(s==="copas"){ // brinda con la copa en alto
+    back=arm("M14 -34Q26 -42 26 -56");
+    front=`<g transform="translate(27 -74) scale(.7)">${PIPS.copas}</g>${hand(26,-58)}${arm("M-14 -32Q-22 -24 -18 -16")}${hand(-18,-15)}`;
+  } else if(s==="espadas"){ // espada en alto, valiente
+    back=`<g transform="translate(26 -46) scale(.86)">${PIPS.espadas}</g>`;
+    front=`${arm("M14 -32Q22 -30 25 -24")}${hand(26,-26)}${arm("M-14 -32Q-22 -24 -14 -17")}${hand(-13,-17,5)}`;
+  } else {                // bastos: garrote al hombro
+    back=`<g transform="translate(28 -50) rotate(-30) scale(.86)">${PIPS.bastos}</g>`;
+    front=`${arm("M14 -32Q25 -30 21 -21")}${hand(21,-22)}${arm("M-14 -32Q-22 -24 -14 -17")}${hand(-13,-17,5)}`;
   }
-  const crown=opt.crown?`<path transform="translate(6.5 4)" d="M-11 -132L-7 -140L-2 -134L2 -142L6 -134L11 -140L13 -131Z" fill="url(#cGoldL)" ${st}/>`:"";
+  const crown=opt.crown?`<g transform="translate(23 -122) rotate(18)"><path d="M-10 4L-8 -6L-3 0L0 -9L3 0L8 -6L10 4Z" fill="url(#cGoldL)" ${st} stroke-width="1.5"/><circle cx="0" cy="-9" r="1.8" fill="#e8604c"/></g>`:"";
   return `<g>
     ${back}
-    <!-- piernas y botas -->
-    <rect x="-14" y="-16" width="10" height="13" fill="${D}" ${st}/><rect x="4" y="-16" width="10" height="13" fill="${D}" ${st}/>
-    <path d="M-22 0Q-22 -8 -12 -6H-3V0Z" fill="#4a2c14" ${st}/><path d="M22 0Q22 -8 12 -6H3V0Z" fill="#4a2c14" ${st}/>
-    <!-- túnica -->
-    <path d="M-17 -62Q0 -68 17 -62L24 -14Q0 -8 -24 -14Z" fill="${T}" ${st}/>
-    <path d="M-17 -62Q0 -68 17 -62L24 -14Q0 -8 -24 -14Z" fill="url(#gnShade)"/>
-    <path d="M-22 -30Q0 -25 22 -30L22.6 -24Q0 -19 -22.6 -24Z" fill="#3a2410" ${st}/>
-    <rect x="-4.5" y="-30" width="9" height="7.5" rx="1.2" fill="url(#cGoldL)" ${st}/>
+    <ellipse cx="0" cy="1" rx="24" ry="3.5" fill="rgba(59,36,22,.18)"/>
+    <ellipse cx="-9" cy="-4" rx="9" ry="5.6" fill="#7a4a2a" ${st}/><ellipse cx="9" cy="-4" rx="9" ry="5.6" fill="#7a4a2a" ${st}/>
+    <path d="M-19 -24C-19 -36 -12 -42 0 -42C12 -42 19 -36 19 -24C19 -12 12 -6 0 -6C-12 -6 -19 -12 -19 -24Z" fill="${T}" ${st}/>
+    <path d="M-12 -12C-6 -8 6 -8 12 -12" fill="none" stroke="${D}" stroke-width="1.6" opacity=".6"/>
+    <circle cx="-6" cy="-30" r="1.4" fill="rgba(255,255,255,.55)"/>
+    <!-- cabeza -->
+    <circle cx="0" cy="-62" r="25" fill="url(#gnSkin)" ${st}/>
     <!-- barba -->
-    <path d="M-15 -78C-17 -64 -14 -50 -6 -42C-3 -39 3 -39 6 -42C14 -50 17 -64 15 -78Z" fill="url(#gnBeard)" ${st}/>
-    <path d="M-8 -66C-9 -58 -7 -51 -4 -46M0 -64V-43M8 -66C9 -58 7 -51 4 -46" fill="none" stroke="#cfc8bd" stroke-width=".9"/>
-    <!-- cara -->
-    <ellipse cx="0" cy="-80" rx="13" ry="10.5" fill="${skin}" ${st}/>
-    <ellipse cx="-7.5" cy="-77" rx="3.4" ry="2.4" fill="#ec8a7c" opacity=".55"/><ellipse cx="7.5" cy="-77" rx="3.4" ry="2.4" fill="#ec8a7c" opacity=".55"/>
-    <ellipse cx="-5" cy="-82" rx="1.5" ry="1.8" fill="#2a1c14"/><ellipse cx="5" cy="-82" rx="1.5" ry="1.8" fill="#2a1c14"/>
-    <circle cx="-4.6" cy="-82.6" r=".5" fill="#fff"/><circle cx="5.4" cy="-82.6" r=".5" fill="#fff"/>
-    <path d="M-9 -85.5Q-6 -87.5 -2.5 -86M9 -85.5Q6 -87.5 2.5 -86" fill="none" stroke="#fff" stroke-width="1.8"/>
-    <path d="M0 -73C-5 -76 -11 -75 -14 -71C-10 -68 -4 -69 0 -71.5C4 -69 10 -68 14 -71C11 -75 5 -76 0 -73Z" fill="url(#gnBeard)" ${st}/>
-    <circle cx="0" cy="-77" r="4.6" fill="url(#gnNose)" ${st}/>
-    <!-- gorro -->
-    <g transform="translate(0 -5)">
-    <path d="M-17 -86C-12 -96 -6 -110 2 -124C4 -128 8 -129 9 -125C11 -112 15 -98 18 -88C10 -84 -8 -83 -17 -86Z" fill="${hat}" ${st}/>
-    <path d="M-18 -88C-8 -84 10 -84 19 -89L19.5 -85C10 -80 -8 -80 -18.5 -84Z" fill="#7a140d" ${st}/>
-    <path d="M6 -122C5 -110 4 -100 2 -90" fill="none" stroke="#f26b52" stroke-width="1.3" opacity=".7"/>
+    <path d="M-22 -58C-24 -46 -18 -36 -10 -33C-6 -29 6 -29 10 -33C18 -36 24 -46 22 -58C16 -52 10 -51 6 -53C3 -50 -3 -50 -6 -53C-10 -51 -16 -52 -22 -58Z" fill="url(#gnBeard)" ${st}/>
+    <path d="M-8 -44Q-6 -40 -3 -38M8 -44Q6 -40 3 -38" fill="none" stroke="#d8d0c4" stroke-width="1.4"/>
+    <!-- ojos -->
+    <ellipse cx="-9" cy="-64" rx="3.6" ry="4.6" fill="${L}"/><ellipse cx="9" cy="-64" rx="3.6" ry="4.6" fill="${L}"/>
+    <circle cx="-7.8" cy="-66" r="1.5" fill="#fff"/><circle cx="10.2" cy="-66" r="1.5" fill="#fff"/>
+    <circle cx="-10" cy="-62.6" r=".7" fill="#fff"/><circle cx="8" cy="-62.6" r=".7" fill="#fff"/>
+    <ellipse cx="-16" cy="-56" rx="4.8" ry="3" fill="#ff8fa0" opacity=".75"/><ellipse cx="16" cy="-56" rx="4.8" ry="3" fill="#ff8fa0" opacity=".75"/>
+    <!-- bigote y nariz -->
+    <path d="M0 -53C-4 -56 -10 -56 -13 -52C-9 -49 -4 -50 0 -51.5C4 -50 9 -49 13 -52C10 -56 4 -56 0 -53Z" fill="#fff" ${st} stroke-width="1.6"/>
+    <circle cx="0" cy="-56.5" r="5.2" fill="url(#gnNose)" ${st} stroke-width="1.6"/>
+    <circle cx="-1.6" cy="-58.2" r="1.4" fill="#fff" opacity=".8"/>
+    <!-- gorro blandito -->
+    <g transform="translate(0 -7)">
+    <path d="M-26 -71C-24 -92 -10 -108 6 -114C16 -118 26 -116 30 -110C26 -112 20 -110 18 -104C16 -96 20 -86 26 -74C12 -68 -12 -67 -26 -71Z" fill="url(#gnHat)" ${st}/>
+    <path d="M-27 -73C-12 -66 12 -66 27 -74L28 -68C12 -61 -12 -61 -28 -67Z" fill="#fff4e0" ${st} stroke-width="1.6"/>
+    <circle cx="31" cy="-110" r="5.5" fill="#fff4e0" ${st} stroke-width="1.6"/>
+    <path d="M-12 -86C-8 -96 -2 -104 6 -108" fill="none" stroke="#ff8a74" stroke-width="2.4" opacity=".7"/>
     ${crown}
     </g>
     ${front}
   </g>`;
 }
-const GN_DEFS='<radialGradient id="gnSkin" cx=".45" cy=".35" r=".75"><stop offset="0" stop-color="#fbdcbc"/><stop offset="1" stop-color="#e3a17a"/></radialGradient><radialGradient id="gnNose" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#ffc2a6"/><stop offset=".55" stop-color="#e8806a"/><stop offset="1" stop-color="#b9503f"/></radialGradient><linearGradient id="gnBeard" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".65" stop-color="#f1ede6"/><stop offset="1" stop-color="#d6cfc4"/></linearGradient><linearGradient id="gnHat" x1="0" y1="0" x2="1" y2=".3"><stop offset="0" stop-color="#9c1d14"/><stop offset=".45" stop-color="#e2412c"/><stop offset=".7" stop-color="#c22d1f"/><stop offset="1" stop-color="#7a140d"/></linearGradient><linearGradient id="gnShade" x1="0" x2="1"><stop offset="0" stop-color="rgba(0,0,0,.28)"/><stop offset=".45" stop-color="rgba(255,255,255,.14)"/><stop offset="1" stop-color="rgba(0,0,0,.3)"/></linearGradient>';
+const GN_DEFS='<radialGradient id="gnSkin" cx=".42" cy=".38" r=".8"><stop offset="0" stop-color="#ffe6cf"/><stop offset="1" stop-color="#f4bd98"/></radialGradient><radialGradient id="gnNose" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#ffc9b4"/><stop offset=".6" stop-color="#f28a78"/><stop offset="1" stop-color="#d0625a"/></radialGradient><linearGradient id="gnBeard" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#ece6dc"/></linearGradient><linearGradient id="gnHat" x1="0" y1="0" x2="1" y2=".4"><stop offset="0" stop-color="#d63a2c"/><stop offset=".5" stop-color="#f05a45"/><stop offset="1" stop-color="#c22d1f"/></linearGradient><linearGradient id="gnShade" x1="0" x2="1"><stop offset="0" stop-color="rgba(0,0,0,.15)"/><stop offset="1" stop-color="rgba(0,0,0,.15)"/></linearGradient>';
 
 function gnPips(m,s){
   if(m<=0)return "";
@@ -599,9 +590,9 @@ function gnPips(m,s){
 }
 function cardSVG(n,s){
   let body="";
-  if(n===1) body=`<g transform="translate(${s==="oros"?100:94} 266) scale(1.32)">${gnomeSVG(s)}</g>`;
-  else if(n===10) body=`<path d="M48 120Q100 96 152 120L156 262H44Z" fill="${GN_TUNIC[s]}" opacity=".18"/><g transform="translate(${s==="oros"?100:94} 266) scale(1.3)">${gnomeSVG(s,{crown:true})}</g>`;
-  else body=gnPips(n-1,s)+`<g transform="translate(100 266) scale(.98)">${gnomeSVG(s)}</g>`;
+  if(n===1) body=`<g transform="translate(${s==="oros"?100:94} 264) scale(1.45)">${gnomeSVG(s)}</g>`;
+  else if(n===10) body=`<path d="M48 120Q100 96 152 120L156 262H44Z" fill="${GN_TUNIC[s]}" opacity=".18"/><g transform="translate(${s==="oros"?100:94} 264) scale(1.42)">${gnomeSVG(s,{crown:true})}</g>`;
+  else body=gnPips(n-1,s)+`<g transform="translate(${s==="oros"?100:96} 264) scale(1.05)">${gnomeSVG(s)}</g>`;
   const corner=`<text x="0" y="0" font-family="Georgia,'Times New Roman',serif" font-weight="700" font-size="26" fill="#1d1a14" text-anchor="middle">${n}</text><g transform="translate(0 18) scale(.36)">${PIPS[s]}</g>`;
   return `<svg class="cf" viewBox="0 0 200 300" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${CARD_DEFS.replace("</defs>",GN_DEFS+"</defs>")}
     <rect x="1" y="1" width="198" height="298" rx="14" fill="#fff"/>
